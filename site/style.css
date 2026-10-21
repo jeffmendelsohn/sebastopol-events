@@ -25,7 +25,7 @@
 }
 
 * { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; scroll-padding-top: calc(var(--top) + var(--strip-h) + 6px); }
+html { -webkit-text-size-adjust: 100%; scroll-padding-top: calc(var(--top) + var(--sticky-h, 74px) + 6px); }
 body { margin: 0; background: var(--paper); color: var(--text); font-family: var(--font); font-size: 14px; line-height: 1.4; font-variant-numeric: lining-nums; }
 a { color: inherit; }
 button, input, select, textarea { font: inherit; color: inherit; }
@@ -126,10 +126,12 @@ body:has(#view-map:not([hidden])) .bar-in { max-width: 1240px; }
 
 /* ---------- Events ---------- */
 .date-strip {
-  position: sticky; top: var(--top); z-index: 6; background: var(--paper); height: var(--strip-h);
+  height: var(--strip-h);
   display: flex; overflow-x: auto; border-bottom: 1px solid var(--ink); scrollbar-width: none;
 }
 .date-strip::-webkit-scrollbar { display: none; }
+/* The category pills and the date strip stay under the bar while the list scrolls. */
+.e-sticky { position: sticky; top: var(--top); z-index: 6; background: var(--paper); }
 .ds-day {
   flex: 0 0 44px; border: 0; border-right: 1px solid var(--hair); background: none; padding: 3px 0; cursor: pointer;
   display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1;
@@ -143,7 +145,7 @@ body:has(#view-map:not([hidden])) .bar-in { max-width: 1240px; }
 .ds-day.focus .w, .ds-day.focus .d, .ds-day.focus .c { color: #fff; }
 .ds-day.focus.today .d { color: var(--amber); }
 .day { margin-bottom: 6px; }
-.day .sec-head { top: calc(var(--top) + var(--strip-h)); }
+.day .sec-head { top: calc(var(--top) + var(--sticky-h, 74px)); }
 .day .sec-head .today { color: var(--amber-ink); }
 .ev .item-row { grid-template-columns: 62px minmax(0, 1fr); }
 .t { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--ink); white-space: nowrap; display: flex; gap: 6px; align-items: center; }

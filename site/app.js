@@ -990,6 +990,23 @@ function boot2() {
   if (state.view === "groups" && state.group) toggleGroup(state.group, { scroll: true });
 }
 
+// The bar and the pinned pills and dates change height with the screen
+// width (and on the crew page), so the sticky offsets are measured.
+function trackHeights() {
+  const root = document.documentElement.style;
+  const bar = $(".bar");
+  const pinned = $("#e-sticky");
+  const measure = () => {
+    if (bar) root.setProperty("--top", bar.offsetHeight + "px");
+    if (pinned?.offsetHeight) root.setProperty("--sticky-h", pinned.offsetHeight + "px");
+  };
+  if (window.ResizeObserver) {
+    const ro = new ResizeObserver(measure);
+    for (const el of [bar, pinned]) if (el) ro.observe(el);
+  }
+  measure();
+}
+
 // ---------- Boot ----------
 async function boot() {
   const [ev, orgs, domains, geo] = await Promise.all(
@@ -1026,6 +1043,7 @@ async function boot() {
   }
   readHash();
   wire();
+  trackHeights();
   setupDialogs();
   setupAdd();
   renderSources();

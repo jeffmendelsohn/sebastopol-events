@@ -75,9 +75,11 @@
       <div class="tools">
         <label class="sr-only" for="e-search">Search events</label>
         <div class="tool-line"><input class="search" id="e-search" type="search" placeholder="Search events: music, farm, kids, yoga" autocomplete="off"><span class="count" id="e-count"></span></div>
-        <div class="chips" id="cat-chips" role="group" aria-label="Kind of event"></div>
       </div>
-      <div class="date-strip" id="date-strip" aria-label="Jump to a day"></div>
+      <div class="e-sticky" id="e-sticky">
+        <div class="chips" id="cat-chips" role="group" aria-label="Kind of event"></div>
+        <div class="date-strip" id="date-strip" aria-label="Jump to a day"></div>
+      </div>
       <p class="filter-note" id="filter-note" hidden></p>
       <div id="thread"></div>
     </section>
