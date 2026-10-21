@@ -100,6 +100,14 @@ body.crew:has(#view-live:not([hidden]), #view-dir:not([hidden]), #view-arch:not(
 .cb-tag { display: inline-block; font-size: 9.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--rust); border: 1px solid var(--rust); border-radius: 999px; padding: 0 6px; margin-left: 4px; vertical-align: 1px; }
 .cb-tag.gift { color: var(--moss-ink); background: var(--moss); border-color: var(--moss); }
 
+/* ---------- Crew pins ---------- */
+.cb-pin { width: 26px; height: 26px; border-radius: 50%; background: var(--rust-btn); border: 2px solid #fff; box-shadow: 0 0 0 1.5px var(--rust); display: grid; place-items: center; color: #fff; font: 700 11px/1 var(--font); }
+.cb-pop { margin: 4px 0 6px; padding-left: 16px; font-size: 12px; }
+.cb-pop li { margin: 1px 0; }
+.crew .near-btn { border-radius: 999px; height: 28px; font-size: 12px; }
+.crew .near-btn[aria-pressed="true"] { background: var(--moss); border-color: var(--moss); color: var(--moss-ink); }
+.crew .near-d { color: var(--rust); }
+
 /* ---------- Board ---------- */
 .cb-tools .tool-line { gap: 8px; flex-wrap: wrap; }
 .cb-legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 11px; color: var(--caption); align-items: center; padding: 6px 0 2px; }

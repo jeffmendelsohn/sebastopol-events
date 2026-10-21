@@ -479,6 +479,42 @@ function spread(items) {
 }
 
 let mapFocus = null; // { kind: "event" | "group", id }
+// "Near me": asked for only when the button is tapped, kept for this visit only.
+let me = null;
+let meLayer = null;
+const kmBetween = (a, b) => {
+  const r = Math.PI / 180, dLat = (b.lat - a.lat) * r, dLng = (b.lng - a.lng) * r;
+  const s = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLng / 2) ** 2;
+  return 12742 * Math.asin(Math.sqrt(s));
+};
+const miles = (km) => (km < 0.16 ? "here" : (km / 1.609).toFixed(km < 16 ? 1 : 0) + " mi");
+function locate() {
+  if (!navigator.geolocation) return toast("This browser cannot share a location");
+  $("#near-me").textContent = "Finding you…";
+  navigator.geolocation.getCurrentPosition(
+    (p) => {
+      me = { lat: p.coords.latitude, lng: p.coords.longitude };
+      $("#near-me").textContent = "Near me";
+      $("#near-me").setAttribute("aria-pressed", "true");
+      if (state.area === "sebastopol") state.area = "nearby";
+      setView("map");
+    },
+    () => {
+      $("#near-me").textContent = "Near me";
+      toast("Location is off. Allow it for this site to sort by distance.");
+    },
+    { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 }
+  );
+}
+function renderNear(pins, kind) {
+  const box = $("#near-list");
+  if (!me || !pins.length) { box.hidden = true; return; }
+  const near = pins.map((p) => ({ ...p, km: kmBetween(me, p) })).sort((a, b) => a.km - b.km).slice(0, 10);
+  box.hidden = false;
+  box.innerHTML = `<h2 class="sec-head"><span>Closest to you</span><span class="n">${near.length}</span></h2>` +
+    near.map((p) => { const x = p.e ?? p.o; return `<button class="near-row" data-near="${esc(x.id)}"><span class="near-d">${miles(p.km)}</span><span class="near-t">${esc(x.title ?? x.name)}</span><span class="near-m">${esc(kind === "groups" ? sectionOf(x).label : (state.map === "today" ? "" : shortDay(x.day) + ", ") + (x.allDay ? "All day" : timeLabel(x.start)))}</span></button>`; }).join("");
+  return near;
+}
 function renderMap() {
   initMap();
   if (!map) return;
@@ -486,6 +522,11 @@ function renderMap() {
   renderLegend();
   layer.clearLayers();
   markers.clear();
+  meLayer?.remove();
+  meLayer = me
+    ? L.marker([me.lat, me.lng], { icon: L.divIcon({ className: "", html: '<div class="me-dot"></div>', iconSize: [18, 18] }), zIndexOffset: 3000, keyboard: false }).bindTooltip("You").addTo(map)
+    : null;
+  let near = [];
   if (state.map === "groups") {
     const list = ORGS.filter(inArea);
     const pins = spread(list.filter((o) => Number.isFinite(o.lat)).map((o) => ({ o, lat: o.lat, lng: o.lng })));
@@ -499,6 +540,7 @@ function renderMap() {
       markers.set(o.id, m);
     }
     $("#map-count").textContent = `${pins.length} of ${list.length} groups have a fixed address`;
+    near = renderNear(pins, "groups") ?? [];
   } else {
     const last = mapWindow();
     const list = EVENTS.filter((e) => inArea(e) && (e.day <= last || (mapFocus?.kind === "event" && mapFocus.id === e.id)));
@@ -517,7 +559,9 @@ function renderMap() {
       markers.set(e.id, m);
     }
     $("#map-count").textContent = `${list.length} event${list.length === 1 ? "" : "s"}, ${pins.length} with an address`;
+    near = renderNear(pins, "events") ?? [];
   }
+  EXT.mapLayer?.({ map, L, layer, mode: state.map, me });
   setTimeout(() => {
     map.invalidateSize();
     const m = mapFocus && markers.get(mapFocus.id);
@@ -525,6 +569,8 @@ function renderMap() {
       map.setView(m.getLatLng(), 15);
       m.openPopup();
       if (m.setStyle) m.setStyle({ radius: 11, weight: 3 });
+    } else if (me) {
+      map.fitBounds(L.latLngBounds([[me.lat, me.lng], ...near.slice(0, 5).map((p) => [p.lat, p.lng])]), { padding: [30, 30], maxZoom: 14 });
     } else {
       const b = state.area === "nearby" ? ringBounds : coreBounds;
       if (b) map.fitBounds(b, { padding: [8, 8] });
@@ -842,6 +888,12 @@ function wire() {
   });
 
   // Map
+  $("#near-me").addEventListener("click", locate);
+  $("#near-list").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-near]");
+    const m = b && markers.get(b.dataset.near);
+    if (m) { map.setView(m.getLatLng(), 15); m.openPopup(); $("#map").scrollIntoView({ block: "center" }); }
+  });
   $("#map-mode").addEventListener("click", (e) => {
     const b = e.target.closest("[data-mode]");
     if (!b) return;

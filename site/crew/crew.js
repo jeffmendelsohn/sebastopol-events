@@ -272,6 +272,9 @@ function copyText(val, el, label) {
 document.addEventListener("click", (e) => {
   const st = e.target.closest("[data-stat]");
   if (st) return go(st.dataset.stat);
+  const town = e.target.closest("[data-crew-town]");
+  if (town) { S.q = town.dataset.crewTown.toLowerCase(); S.f = ""; S.kind = ""; S.shown = {}; API.setView("live"); window.scrollTo({ top: 0 }); return; }
+  if (e.target.closest("#crew-map")) { crewOnMap = !crewOnMap; store.set("crew-map", crewOnMap ? "on" : "off"); API.setView("map"); return; }
   const m = e.target.closest("[data-more]");
   if (m && m.closest(".cb-out")) { S.shown[m.dataset.more] = (S.shown[m.dataset.more] || 40) + 40; renderBoard(API.state.view); return; }
   const a = e.target.closest("[data-cb-act]");
@@ -286,6 +289,45 @@ document.addEventListener("toggle", (e) => {
   el.insertAdjacentHTML("beforeend", replyBox(POSTS.find((x) => String(x.id) === el.dataset.cbId), true));
 }, true);
 
+// ---------- Crew posts on the map ----------
+// Posts only name a town, so each town gets one pin at its center. Never
+// anything more precise: these are people's posts. "Online" and blanks stay off.
+const TOWNS = {
+  sebastopol: [38.4021, -122.8239], graton: [38.4366, -122.8686], occidental: [38.4074, -122.9483], forestville: [38.4735, -122.8903],
+  guerneville: [38.5019, -122.9961], "monte rio": [38.4655, -123.0089], "camp meeker": [38.4252, -122.9586], freestone: [38.3727, -122.9133],
+  bodega: [38.346, -122.9733], "bodega bay": [38.333, -123.0481], "valley ford": [38.318, -122.9236], "santa rosa": [38.4405, -122.7144],
+  "rohnert park": [38.3396, -122.7011], cotati: [38.3266, -122.7072], petaluma: [38.2324, -122.6367], windsor: [38.5471, -122.8164],
+  healdsburg: [38.6105, -122.8692], sonoma: [38.2919, -122.458], "glen ellen": [38.3641, -122.5241], kenwood: [38.413, -122.5461],
+  penngrove: [38.2996, -122.6667], fulton: [38.4977, -122.77], jenner: [38.4485, -123.1158], cazadero: [38.5333, -123.0847],
+  geyserville: [38.7066, -122.9022], cloverdale: [38.8055, -123.0172], larkfield: [38.513, -122.7489], bloomfield: [38.3135, -122.8505],
+  "duncans mills": [38.4538, -123.0533], "rio nido": [38.5155, -122.9822], "two rock": [38.2569, -122.8139],
+};
+const townOf = (w) => { const s = String(w || "").toLowerCase().replace(/^(west|east|north|south|downtown)\s+/, "").trim(); if (TOWNS[s]) return s; return Object.keys(TOWNS).sort((a, b) => b.length - a.length).find((t) => s.includes(t)) || ""; };
+let crewOnMap = store.get("crew-map") !== "off";
+function mapLayer({ L, layer, mode }) {
+  const btn = $("crew-map");
+  if (btn) btn.setAttribute("aria-pressed", String(crewOnMap));
+  if (!crewOnMap || mode === "groups") return;
+  const byTown = {};
+  for (const d of POSTS) {
+    if (d._state !== "live" && d._state !== "dir") continue;
+    const t = townOf(d.where); if (!t) continue;
+    (byTown[t] ||= []).push(d);
+  }
+  for (const [t, posts] of Object.entries(byTown)) {
+    posts.sort((a, b) => (a._state === "live" ? 0 : 1) - (b._state === "live" ? 0 : 1) || b._date - a._date);
+    const name = t.replace(/\b\w/g, (c) => c.toUpperCase());
+    const gifts = posts.filter(isGift).length;
+    const icon = L.divIcon({ className: "", html: `<div class="cb-pin"><b>${posts.length}</b></div>`, iconSize: [26, 26], iconAnchor: [13, 13] });
+    L.marker(TOWNS[t], { icon, zIndexOffset: 1000 })
+      .bindPopup(`<span class="where-tag">Soul-noma Crew</span><span class="pt">${esc(name)}: ${posts.length} ${posts.length === 1 ? "post" : "posts"}</span>` +
+        `<span class="pm">${posts.filter((d) => d.k === "ask" && d._state === "live").length} asks · ${posts.filter((d) => d._state === "dir").length} evergreen · ${gifts} ∞ gifts</span>` +
+        `<ul class="cb-pop">${posts.slice(0, 6).map((d) => `<li>${isGift(d) ? "∞ " : ""}${esc(d._state === "dir" && d.svc ? d.svc : d.t)}</li>`).join("")}</ul>` +
+        `<button class="go" data-crew-town="${esc(name)}">See ${posts.length > 6 ? "all " + posts.length : "them"}</button>`, { maxWidth: 280 })
+      .addTo(layer);
+  }
+}
+
 // ---------- Start ----------
 function begin(crew) {
   POSTS = crew ? prep(crew.posts) : [];
@@ -294,9 +336,15 @@ function begin(crew) {
   window.SE = {
     views: { live: () => renderBoard("live"), dir: () => renderBoard("dir"), arch: () => renderBoard("arch") },
     mergeEvents,
+    mapLayer,
     rowTag: (e) => e._crew ? ` <span class="cb-tag">Crew</span>${isGift(e._crew) ? ` <span class="cb-tag gift">∞</span>` : ""}` : "",
     detailExtra: (e) => e._crew ? (e.source === "crew" ? "" : `<p class="item-meta">Also shared in the Crew by ${esc(e._crew.who)}.</p>`) + replyBox(e._crew, e.source === "crew") : "",
-    ready: (api) => { API = api; stats(); counts(); setBar(); },
+    ready: (api) => {
+      API = api;
+      document.getElementById("near-me")?.insertAdjacentHTML("beforebegin", `<button class="btn ghost near-btn" id="crew-map" type="button" aria-pressed="${crewOnMap}">Crew posts</button>`);
+      stats(); counts(); setBar();
+      if (api.state.view === "map") api.setView("map");
+    },
   };
   addEventListener("resize", setBar);
   import(new URL("../app.js?v=" + (document.querySelector('script[src*="crew.js"]')?.src.split("v=")[1] ?? ""), import.meta.url).href);

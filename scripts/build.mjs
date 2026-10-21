@@ -190,6 +190,7 @@ writeFileSync(
 const version = createHash("sha1")
   .update(readFileSync(join(ROOT, "site/app.js")))
   .update(readFileSync(join(ROOT, "site/style.css")))
+  .update(["site/crew/crew.js", "site/crew/crew.css"].map((f) => (existsSync(join(ROOT, f)) ? readFileSync(join(ROOT, f), "utf8") : "")).join(""))
   .update(String(events.fetchedAt))
   .digest("hex")
   .slice(0, 10);
