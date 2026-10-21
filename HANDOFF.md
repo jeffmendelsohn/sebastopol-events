@@ -12,10 +12,13 @@ A version of the Sunset events site (`benvonwong-byte/sunset-buildathon`, sunset
 
 ## Where it is
 
-- Repo: https://github.com/benvonwong-byte/sebastopol-events (public)
-- Site: https://benvonwong-byte.github.io/sebastopol-events/ (GitHub Pages from the deploy workflow; `noindex` until `INDEX: "1"` is set in `.github/workflows/deploy.yml`)
-- Local copy: `~/Dropbox/ClaudeCode/sebastopol-events`
-- Local preview: the `sebastopol` entry in `DearCrisis/.claude/launch.json` serves `dist/` on port 4322 (that file is gitignored there)
+Jeff runs it from his own repo since 2026-10-20. Ben's repo is the `upstream` remote, with pushes to it turned off.
+
+- Repo: https://github.com/jeffmendelsohn/sebastopol-events (public)
+- Site: https://jeffmendelsohn.github.io/sebastopol-events/ (GitHub Pages from the deploy workflow; `noindex` until `INDEX: "1"` is set in `.github/workflows/deploy.yml`)
+- Ben's original: https://github.com/benvonwong-byte/sebastopol-events
+- Local copy: `~/Documents/ClaudeCode/sebastopol-events`
+- Local preview: the `sebastopol-events` entry in `.claude/launch.json` serves `dist/` on port 4322 (gitignored)
 
 ## What is built
 
@@ -44,6 +47,6 @@ A version of the Sunset events site (`benvonwong-byte/sunset-buildathon`, sunset
 
 ## Links to review
 
-- The site: https://benvonwong-byte.github.io/sebastopol-events/
-- Wider area: https://benvonwong-byte.github.io/sebastopol-events/#view=map&area=nearby
-- The Add forms: https://github.com/benvonwong-byte/sebastopol-events/issues/new/choose
+- The site: https://jeffmendelsohn.github.io/sebastopol-events/
+- Wider area: https://jeffmendelsohn.github.io/sebastopol-events/#view=map&area=nearby
+- The Add forms: https://github.com/jeffmendelsohn/sebastopol-events/issues/new/choose

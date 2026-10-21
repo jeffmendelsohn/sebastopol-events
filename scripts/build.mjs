@@ -17,7 +17,7 @@ import { AREAS, CENTER, RADIUS_KM, CORE_OUTLINE, CORE_HOLES, TOWNS } from "./lib
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = join(ROOT, "dist");
-const BASE = (process.env.SITE_URL || "https://benvonwong-byte.github.io/sebastopol-events/").replace(/\/*$/, "/");
+const BASE = (process.env.SITE_URL || "https://jeffmendelsohn.github.io/sebastopol-events/").replace(/\/*$/, "/");
 const HOST = new URL(BASE).host;
 const read = (p) => JSON.parse(readFileSync(join(ROOT, p), "utf8"));
 

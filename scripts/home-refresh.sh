@@ -14,7 +14,7 @@ set -euo pipefail
 export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
 
 CLONE="${SEBASTOPOL_CLONE:-$HOME/.sebastopol-refresh/sebastopol-events}"
-REPO_URL="https://github.com/benvonwong-byte/sebastopol-events.git"
+REPO_URL="https://github.com/jeffmendelsohn/sebastopol-events.git"
 DATA=(data/events.json data/geocache.json data/orgs.json docs/needs-a-feed.md)
 
 echo "$(date '+%F %T') sebastopol refresh: start"

@@ -10,7 +10,7 @@
 // Everything in the data comes from outside websites, so every string that
 // reaches innerHTML goes through esc(), and every link through safeUrl().
 
-const REPO = "benvonwong-byte/sebastopol-events";
+const REPO = "jeffmendelsohn/sebastopol-events";
 // An address for "Email it instead" in the Add dialog. Empty hides those links.
 const CONTACT = "";
 

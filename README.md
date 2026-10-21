@@ -2,7 +2,7 @@
 
 Every public event in Sebastopol, California (ZIP 95472) and the towns within about 22 km, the groups behind them, and a map. The site rebuilds itself every morning from public calendars, and anyone can add theirs.
 
-Live at https://benvonwong-byte.github.io/sebastopol-events/ (unlisted from search engines until `INDEX=1` is set in the deploy workflow).
+Live at https://jeffmendelsohn.github.io/sebastopol-events/ (unlisted from search engines until `INDEX=1` is set in the deploy workflow).
 
 ## What it shows
 

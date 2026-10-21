@@ -51,7 +51,7 @@ export function openGeocoder(cachePath) {
     u.searchParams.set("viewbox", VIEWBOX);
     u.searchParams.set("bounded", "1");
     const res = await fetch(u, {
-      headers: { "User-Agent": `${UA} (+https://github.com/benvonwong-byte/sebastopol-events)` },
+      headers: { "User-Agent": `${UA} (+https://github.com/jeffmendelsohn/sebastopol-events)` },
       signal: AbortSignal.timeout(20000),
     });
     if (!res.ok) return null;
