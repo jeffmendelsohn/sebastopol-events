@@ -46,6 +46,13 @@ jobs:
       - name: Build the site
         run: node scripts/build.mjs
 
+      # The Soul-noma Crew board at /crew/ reads an encrypted file kept on the
+      # crew-data release, not in the repo. Jeff's Mac uploads it.
+      - name: Add the Crew board data
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release download crew-data -p crew.enc.json -D dist/crew --clobber || echo "No crew data yet"
+
       # Keep a dated record of each morning's listings in the repo. Only on
       # the schedule and manual runs, so a contributor's push is not followed
       # by a bot commit they then have to pull.
