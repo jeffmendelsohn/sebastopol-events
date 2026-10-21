@@ -1,7 +1,7 @@
 // Sebastopol Events: three simple views over data files rebuilt every morning.
-//   Groups  the directory, by kind of group
+//   Events  one threaded list with a strip of dates on top (the landing view)
 //   Map     one map with a three-way switch: today, next 7 days, groups
-//   Events  one threaded list with a strip of dates on top
+//   Groups  the directory, by kind of group
 // One switch above all three picks the area: Sebastopol (ZIP 95472) or
 // Sebastopol plus the towns within about 22 km. Anything outside the ZIP is
 // marked in amber: an amber edge on its row, an amber "Nearby · Graton"
@@ -88,21 +88,21 @@ const SECTIONS = [
 const sectionOf = (o) => SECTIONS.find((s) => s.kinds.includes(o.kind)) ?? SECTIONS[0];
 
 // ---------- State (mirrored in the URL hash) ----------
-const VIEWS = ["groups", "map", "events"];
+const VIEWS = ["events", "map", "groups"];
 const AREAS = ["sebastopol", "nearby"];
 const DEFAULTS = { map: "week", area: "sebastopol" };
-const state = { view: "groups", gq: "", kind: "", eq: "", cat: "", org: "", event: "", group: "", map: "week", area: "sebastopol" };
+const state = { view: "events", gq: "", kind: "", eq: "", cat: "", org: "", event: "", group: "", map: "week", area: "sebastopol" };
 const KEYS = ["gq", "kind", "eq", "cat", "org", "event", "group", "map", "area"];
 
 function readHash() {
   const p = new URLSearchParams(location.hash.slice(1));
-  state.view = VIEWS.includes(p.get("view")) ? p.get("view") : "groups";
+  state.view = VIEWS.includes(p.get("view")) ? p.get("view") : "events";
   for (const k of KEYS) state[k] = p.get(k) ?? DEFAULTS[k] ?? "";
   if (!AREAS.includes(state.area)) state.area = DEFAULTS.area;
 }
 function writeHash() {
   const p = new URLSearchParams();
-  if (state.view !== "groups") p.set("view", state.view);
+  if (state.view !== "events") p.set("view", state.view);
   for (const k of KEYS) if (state[k] && state[k] !== DEFAULTS[k]) p.set(k, state[k]);
   const h = p.toString();
   history.replaceState(null, "", h ? "#" + h : location.pathname + location.search);
@@ -128,32 +128,21 @@ function areaPool() {
   }
   return EVENTS;
 }
+// The bar: which view is on, the area counts, and what Add offers.
+const ADD_LABEL = { events: "+ Add event", map: "+ Add", groups: "+ Add group" };
 function renderHero() {
   const v = state.view;
-  const near = state.area === "nearby";
   const pool = areaPool();
   const core = pool.filter((x) => x.area === "sebastopol").length;
   $("#headline").textContent = v === "groups" ? "Groups" : v === "map" ? "Map" : "Events";
-  const n = near ? pool.length : core;
-  $("#subline").textContent =
-    v === "groups"
-      ? near
-        ? `${n} nonprofits, farms, venues and groups in Sebastopol and the towns within about 22 km. The ones outside Sebastopol have an amber edge.`
-        : `${n} nonprofits, farms, venues and neighborhood groups in Sebastopol, and how to take part.`
-      : v === "map"
-        ? near
-          ? "ZIP 95472 is shaded. Filled pins are in Sebastopol; hollow pins are in Graton, Forestville, Occidental, the coast, the river towns and Santa Rosa."
-          : "Sebastopol, ZIP 95472, is shaded. Switch to Sebastopol + nearby to zoom out to the towns around it."
-        : near
-          ? "Public events in Sebastopol and the towns within about 22 km, gathered every morning. The ones outside Sebastopol are marked in amber."
-          : "Public events in Sebastopol, ZIP 95472, gathered every morning from local calendars, the library, Luma, Eventbrite and Meetup.";
+  $("#open-add").textContent = ADD_LABEL[v];
   for (const b of $$(".area-switch button")) {
     const on = b.dataset.area === state.area;
     b.setAttribute("aria-pressed", String(on));
     const count = b.dataset.area === "nearby" ? pool.length : core;
     b.innerHTML =
       b.dataset.area === "nearby"
-        ? `<span class="key-near" aria-hidden="true"></span>Sebastopol + nearby <span class="n">${count}</span>`
+        ? `<span class="key-near" aria-hidden="true"></span>+ Nearby <span class="n">${count}</span>`
         : `<span class="key-core" aria-hidden="true"></span>Sebastopol <span class="n">${count}</span>`;
   }
 }
@@ -193,7 +182,7 @@ function renderGroups() {
       html += `<article class="item${isNear(o) ? " near" : ""}${state.group === o.id ? " open" : ""}" id="g-${esc(o.id)}" data-id="${esc(o.id)}">
         <button class="item-row" aria-expanded="${state.group === o.id}">
           <span class="dot" style="--c:${colorOf(firstDomain(o))}"></span>
-          <span><span class="item-name">${esc(o.name)}</span><span class="item-sub">${esc(o.what)}</span>${tag ? `<span class="item-meta"><span class="where-tag">${esc(tag)}</span></span>` : ""}</span>
+          <span class="line"><span class="item-name">${esc(o.name)}</span>${tag ? ` <span class="where-tag">${esc(tag)}</span>` : ""} <span class="item-sub">${esc(o.what)}</span></span>
           <span class="badge">${n ? `${n} event${n === 1 ? "" : "s"}` : ""}</span>
         </button>
         <div class="item-more"${state.group === o.id ? "" : " hidden"}>${state.group === o.id ? groupDetail(o) : ""}</div>
@@ -202,10 +191,9 @@ function renderGroups() {
     html += `</section>`;
   }
   const noFeed = ORGS.filter((o) => inArea(o) && !(o.feeds ?? []).length).length;
-  if (!state.gq && !state.kind) {
-    html += `<div class="callout"><h2>Run one of these groups?</h2><p>${noFeed ? `${noFeed} of the groups here post events only on a web page, Instagram or a flyer, so their events cannot appear yet. ` : ""}A free Luma or Google calendar takes five minutes, and after that every event you post shows up here on its own.</p><button class="btn" data-open-add="feed">Add your calendar</button></div>`;
-  }
+  html += `<div class="callout"><p>Missing a group? Run one of these? ${noFeed ? `${noFeed} of the groups here post events only on a web page, Instagram or a flyer, so their events cannot appear yet. ` : ""}A calendar link puts every event you post here on its own.</p><button class="btn" data-open-add="group">Add your group</button><button class="btn ghost" data-open-add="feed">Add a calendar</button></div>`;
   $("#group-list").innerHTML = html;
+  $("#g-count").textContent = `${list.length} group${list.length === 1 ? "" : "s"}`;
 }
 
 function groupDetail(o) {
@@ -271,6 +259,7 @@ function renderEvents() {
   $("#filter-note").innerHTML = org ? `Only events from ${esc(org.name)}. <button class="inline-link" data-clear-org>Show everyone's</button>` : "";
 
   const list = searched.filter((e) => eventPasses(e));
+  $("#e-count").textContent = `${list.length} event${list.length === 1 ? "" : "s"}`;
   const byDay = new Map();
   for (const e of list) {
     if (!byDay.has(e.day)) byDay.set(e.day, []);
@@ -296,6 +285,7 @@ function renderEvents() {
     const label = k === t ? `<span class="today">Today</span> · ${esc(longDay(k))}` : k === keyPlus(t, 1) ? `Tomorrow · ${esc(longDay(k))}` : esc(longDay(k));
     html += `<section class="day" id="d-${k}" data-day="${k}"><h2 class="sec-head"><span>${label}</span><span class="n">${evs.length}</span></h2>${evs.map(eventRow).join("")}</section>`;
   }
+  html += `<div class="callout"><p>Something missing? Add one event, or a calendar link so every event a group posts shows up here.</p><button class="btn" data-open-add="event">Add an event</button><button class="btn ghost" data-open-add="feed">Add a calendar</button></div>`;
   $("#thread").innerHTML = html;
   trackScroll(true);
 }
@@ -305,12 +295,12 @@ function eventRow(e) {
   const host = (e.org ?? "").toLowerCase();
   const same = venue && host && (host.includes(venue) || venue.includes(host));
   const tag = placeTag(e);
-  const meta = [same ? null : esc(e.venue), tag ? `<span class="where-tag">${esc(tag)}</span>` : null].filter(Boolean).join(" · ");
+  const venueText = same ? "" : e.venue ? esc(e.venue) : "";
   const open = state.event === e.id;
   return `<article class="item ev${isNear(e) ? " near" : ""}${open ? " open" : ""}" id="e-${esc(e.id)}" data-id="${esc(e.id)}">
     <button class="item-row" aria-expanded="${open}">
       <span class="t"><span class="sw" style="--c:${colorOf(e.domain)}"></span>${esc(e.allDay ? "All day" : timeLabel(e.start))}</span>
-      <span><span class="item-name">${esc(e.title)}${e.org ? `<span class="host"> · ${esc(e.org)}</span>` : ""}</span>${meta ? `<span class="item-meta">${meta}</span>` : ""}</span>
+      <span class="line"><span class="item-name">${esc(e.title)}</span>${e.org ? `<span class="host"> · ${esc(e.org)}</span>` : ""}${venueText ? `<span class="item-meta"> · ${venueText}</span>` : ""}${tag ? ` <span class="where-tag">${esc(tag)}</span>` : ""}</span>
     </button>
     <div class="item-more"${open ? "" : " hidden"}>${open ? eventDetail(e) : ""}</div>
   </article>`;
@@ -596,9 +586,10 @@ function renderSources() {
 }
 
 // ---------- Add: a calendar, one event, or how to start a calendar ----------
-// The two forms open a GitHub issue with the answers filled in
-// (.github/ISSUE_TEMPLATE/add-source.yml and add-event.yml, whose field ids
-// match the parameters here). A bot checks it and opens a pull request.
+// The three forms open a GitHub issue with the answers filled in
+// (.github/ISSUE_TEMPLATE/add-source.yml, add-event.yml and add-group.yml,
+// whose field ids match the parameters here). A bot checks it and replies;
+// nothing goes on the site until `npm run review` approves it.
 const HINTS = [
   [/^(https?:\/\/)?(www\.)?(lu\.ma|luma\.com)\/(embed\/)?[\w-]+/i, true, "A Luma calendar. We read its public feed."],
   [/calendar\.google\.com/i, true, "A Google Calendar. It has to be public; the check says if it is not."],
@@ -637,7 +628,7 @@ function setupAdd() {
     const b = e.target.closest("[data-add]");
     if (b) showPane(b.dataset.add);
   });
-  const open = (pane = "feed") => {
+  const open = (pane = state.view === "groups" ? "group" : "event") => {
     showPane(pane);
     if (!dlg.open) dlg.showModal();
   };
@@ -714,7 +705,40 @@ function setupAdd() {
     );
   });
 
-  if (!CONTACT) for (const a of $$("#feed-mail, #ev-mail")) a.hidden = true;
+  // A group
+  const gr = Object.fromEntries(["name", "url", "what", "plugin", "address", "feed", "instagram"].map((k) => [k, $("#gr-" + k)]));
+  const grVals = () => Object.fromEntries(Object.entries(gr).map(([k, el]) => [k, el.value.trim()]));
+  const updateGrMail = () => {
+    const v = grVals();
+    $("#gr-mail").href = mailto(`Group for Sebastopol Events: ${v.name || "new group"}`, [
+      `Group: ${v.name}`,
+      `Website: ${v.url}`,
+      `What it does: ${v.what}`,
+      `How to take part: ${v.plugin}`,
+      `Address: ${v.address}`,
+      `Calendar: ${v.feed}`,
+      `Instagram: ${v.instagram}`,
+    ]);
+  };
+  for (const el of Object.values(gr)) el.addEventListener("input", updateGrMail);
+  $("#gr-send").addEventListener("click", () => {
+    const v = grVals();
+    const missing = [!v.name && gr.name, !v.what && gr.what].filter(Boolean);
+    if (missing.length) {
+      for (const el of missing) el.setAttribute("aria-invalid", "true");
+      toast("Add the name and what the group does first");
+      return missing[0].focus();
+    }
+    for (const el of Object.values(gr)) el.removeAttribute("aria-invalid");
+    window.open(
+      issueUrl("add-group.yml", `Add group: ${v.name}`, { group: v.name, website: v.url, what: v.what, plugin: v.plugin, address: v.address, calendar: v.feed, instagram: v.instagram }),
+      "_blank",
+      "noopener"
+    );
+  });
+
+  if (!CONTACT) for (const a of $$("#feed-mail, #ev-mail, #gr-mail")) a.hidden = true;
+  updateGrMail();
   update();
   updateMail();
 }

@@ -29,32 +29,28 @@
   <!--JSONLD-->
 </head>
 <body>
-  <header class="band">
-    <a class="logotype" href="./" aria-label="Sebastopol Events, home"><span>Sebastopol</span><span>Events + Groups</span></a>
-    <nav class="nav" aria-label="Views">
-      <div class="nav-in" role="tablist">
-        <button role="tab" class="nav-tab" id="tab-groups" data-view="groups" aria-controls="view-groups">Groups</button>
-        <button role="tab" class="nav-tab" id="tab-map" data-view="map" aria-controls="view-map">Map</button>
+  <header class="bar">
+    <div class="bar-in">
+      <a class="brand" href="./" aria-label="Sebastopol Events, home">Sebastopol <b>Events</b></a>
+      <h1 class="sr-only" id="headline">Events</h1>
+      <div class="seg views" role="tablist" aria-label="Views">
         <button role="tab" class="nav-tab" id="tab-events" data-view="events" aria-controls="view-events">Events</button>
-        <button class="nav-tab nav-add" id="open-add">Add</button>
+        <button role="tab" class="nav-tab" id="tab-map" data-view="map" aria-controls="view-map">Map</button>
+        <button role="tab" class="nav-tab" id="tab-groups" data-view="groups" aria-controls="view-groups">Groups</button>
       </div>
-    </nav>
-  </header>
-
-  <section class="hero">
-    <h1 id="headline">Groups</h1>
-    <p class="sub" id="subline"></p>
-    <div class="area-switch" role="group" aria-label="Which area">
-      <button data-area="sebastopol">Sebastopol</button>
-      <button data-area="nearby">Sebastopol + nearby</button>
+      <div class="seg area-switch" role="group" aria-label="Which area">
+        <button data-area="sebastopol">Sebastopol</button>
+        <button data-area="nearby">+ Nearby</button>
+      </div>
+      <button class="btn add-btn" id="open-add">+ Add</button>
     </div>
-  </section>
+  </header>
 
   <main class="wrap">
     <section id="view-groups" role="tabpanel" aria-labelledby="tab-groups" hidden>
       <div class="tools">
         <label class="sr-only" for="g-search">Search groups</label>
-        <input class="search" id="g-search" type="search" placeholder="Search groups: farm, library, food pantry, music" autocomplete="off">
+        <div class="tool-line"><input class="search" id="g-search" type="search" placeholder="Search groups: farm, library, food pantry, music" autocomplete="off"><span class="count" id="g-count"></span></div>
         <div class="chips" id="kind-chips" role="group" aria-label="Kind of group"></div>
       </div>
       <div id="group-list"></div>
@@ -76,7 +72,7 @@
     <section id="view-events" role="tabpanel" aria-labelledby="tab-events" hidden>
       <div class="tools">
         <label class="sr-only" for="e-search">Search events</label>
-        <input class="search" id="e-search" type="search" placeholder="Search events: music, farm, kids, yoga" autocomplete="off">
+        <div class="tool-line"><input class="search" id="e-search" type="search" placeholder="Search events: music, farm, kids, yoga" autocomplete="off"><span class="count" id="e-count"></span></div>
         <div class="chips" id="cat-chips" role="group" aria-label="Kind of event"></div>
       </div>
       <div class="date-strip" id="date-strip" aria-label="Jump to a day"></div>
@@ -87,15 +83,9 @@
 
   <footer class="foot">
     <div class="foot-in">
-      <div>
-        <h2>How this works</h2>
-        <p>Every morning a script reads the public calendars of the groups listed here, the ones people add through this site, the Sonoma County Library, and the Luma, Eventbrite and Meetup listings for this part of the county. It keeps what happens in Sebastopol (ZIP 95472) and in the towns within about 22 km, and merges anything listed twice. Check the organizer's page before you go.</p>
-        <p><button class="foot-link" id="foot-add">Add your calendar or an event</button> · <button class="foot-link" id="open-subscribe">Subscribe or use the feeds</button> · <a href="https://github.com/benvonwong-byte/sebastopol-events">Code on GitHub</a></p>
-      </div>
-      <div>
-        <h2>Sources this morning</h2>
-        <ul class="sources" id="sources"></ul>
-      </div>
+      <p>Every morning a script reads the public calendars of the groups listed here, the ones people add through this site, the Sonoma County Library, and the Luma, Eventbrite and Meetup listings for this part of the county. It keeps what happens in Sebastopol (ZIP 95472) and in the towns within about 22 km, and merges anything listed twice. Check the organizer's page before you go.</p>
+      <p><button class="foot-link" id="foot-add">Add an event, a calendar or a group</button> · <button class="foot-link" id="open-subscribe">Subscribe or use the feeds</button> · <a href="https://github.com/jeffmendelsohn/sebastopol-events">Code on GitHub</a></p>
+      <details class="src-box"><summary>Sources this morning</summary><ul class="sources" id="sources"></ul></details>
     </div>
   </footer>
 
@@ -104,22 +94,23 @@
     <div class="dlg-body">
       <h2 id="add-title">Get your events here</h2>
       <div class="add-tabs" role="tablist">
-        <button role="tab" data-add="feed" aria-selected="true">A calendar</button>
-        <button role="tab" data-add="event" aria-selected="false">One event</button>
+        <button role="tab" data-add="event" aria-selected="true">One event</button>
+        <button role="tab" data-add="feed" aria-selected="false">A calendar</button>
+        <button role="tab" data-add="group" aria-selected="false">A group</button>
         <button role="tab" data-add="guide" aria-selected="false">No calendar yet</button>
       </div>
 
-      <div class="add-pane" data-pane="feed">
+      <div class="add-pane" data-pane="feed" hidden>
         <p>Paste the link to wherever your group keeps its events. We read it every morning, so new events appear here on their own.</p>
         <label class="field"><span>Calendar or feed link</span><input id="feed-url" type="url" placeholder="lu.ma/your-calendar, a Google Calendar, meetup.com/your-group, an RSS feed"></label>
         <p class="detect" id="feed-detect" aria-live="polite"></p>
         <label class="field"><span>Group or calendar name</span><input id="feed-name" type="text" placeholder="Sebastopol Garden Club"></label>
         <p class="small">Works with Luma, Google Calendar (a public calendar), Meetup, Eventbrite, Mobilize, Tockify, any .ics or webcal link, RSS feeds, and Squarespace or WordPress events pages.</p>
         <div class="actions"><button class="btn" id="feed-send">Send it</button><a class="btn ghost" id="feed-mail" href="#">Email it instead</a></div>
-        <p class="small">"Send it" opens a short form on GitHub, where a free account is needed. A bot checks the link within a minute and replies with what it found.</p>
+        <p class="small">"Send it" opens a short form on GitHub, where a free account is needed. A bot checks the link within a minute and replies with what it found. It goes on the site once it is reviewed.</p>
       </div>
 
-      <div class="add-pane" data-pane="event" hidden>
+      <div class="add-pane" data-pane="event">
         <p>For a one-off. For anything that repeats, <button class="inline-link" data-goto="feed">a calendar link</button> saves you posting each one.</p>
         <label class="field"><span>Event name</span><input id="ev-name" type="text"></label>
         <div class="field-row">
@@ -132,6 +123,20 @@
         <label class="field"><span>Who is hosting it</span><input id="ev-host" type="text"></label>
         <label class="field"><span>One or two sentences about it</span><textarea id="ev-about" rows="2"></textarea></label>
         <div class="actions"><button class="btn" id="ev-send">Send it</button><a class="btn ghost" id="ev-mail" href="#">Email it instead</a></div>
+        <p class="small">"Send it" opens a short form on GitHub, where a free account is needed. The event goes on the site once it is reviewed.</p>
+      </div>
+
+      <div class="add-pane" data-pane="group" hidden>
+        <p>A nonprofit, farm, venue, club, church or neighborhood group in Sebastopol or a town nearby.</p>
+        <label class="field"><span>Group name</span><input id="gr-name" type="text"></label>
+        <label class="field"><span>Website</span><input id="gr-url" type="url" placeholder="https://"></label>
+        <label class="field"><span>What the group does, in one line</span><input id="gr-what" type="text" maxlength="260"></label>
+        <label class="field"><span>How someone can take part</span><input id="gr-plugin" type="text" placeholder="Volunteer on Saturdays, join the mailing list, come to a meeting"></label>
+        <label class="field"><span>Street address (if it has one)</span><input id="gr-address" type="text" placeholder="7400 Willow St, Sebastopol"></label>
+        <label class="field"><span>Calendar or events page (if it has one)</span><input id="gr-feed" type="url" placeholder="https://"></label>
+        <label class="field"><span>Instagram (if it has one)</span><input id="gr-instagram" type="url" placeholder="https://instagram.com/..."></label>
+        <div class="actions"><button class="btn" id="gr-send">Send it</button><a class="btn ghost" id="gr-mail" href="#">Email it instead</a></div>
+        <p class="small">"Send it" opens a short form on GitHub, where a free account is needed. The group goes on the site once it is reviewed.</p>
       </div>
 
       <div class="add-pane guide" data-pane="guide" hidden>
