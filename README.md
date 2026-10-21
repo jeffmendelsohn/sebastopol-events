@@ -12,17 +12,22 @@ Three views share one switch at the top: **Sebastopol** (the ZIP) or **Sebastopo
 - **Map** shows today, the next seven days, or the groups. ZIP 95472 is shaded amber with Graton cut out of it, and a dashed circle marks the nearby ring. Pins in Sebastopol are filled; pins outside it are hollow.
 - **Events** is one list by day, with a strip of dates on top. Rows outside Sebastopol have an amber edge and an amber "Nearby · Town" label.
 
-The look follows [Green Valley Farm + Mill](https://gvfam.com/home): a black band with spaced capitals, Raleway, a white page and one amber.
+The page opens on Events. One slim bar at the top stays in view with the three views, the area switch and an Add button. The look follows [Green Valley Farm + Mill](https://gvfam.com/home): spaced capitals, Raleway, a white page and one amber.
 
-## Adding a calendar or an event
+## Adding a calendar, an event or a group
 
-The Add button on the site has three paths:
+The Add button in the bar has four paths, and each view also has its own Add button below the list:
 
-1. **A calendar.** Paste a link (Luma, Google Calendar, Meetup, Eventbrite organizer, Mobilize, Tockify, any .ics or webcal, RSS, a Squarespace or WordPress events page). It opens a short GitHub form with the link filled in.
-2. **One event.** A form for a one-off.
-3. **No calendar yet.** Five-minute setup steps for a free Luma or Google calendar.
+1. **One event.** A form for a one-off.
+2. **A calendar.** Paste a link (Luma, Google Calendar, Meetup, Eventbrite organizer, Mobilize, Tockify, any .ics or webcal, RSS, a Squarespace or WordPress events page). It opens a short GitHub form with the link filled in.
+3. **A group.** Name, website, one line on what it does, how to take part, and an address and calendar if it has them.
+4. **No calendar yet.** Five-minute setup steps for a free Luma or Google calendar.
 
-Either form opens an issue. The `Check a submission` workflow reads the link (or checks the date and the address), replies on the issue with what it found, and opens a pull request. A maintainer merges it, and the deploy picks it up. The full guide is in [docs/adding-a-source.md](docs/adding-a-source.md).
+Each form opens an issue. The `Check a submission` workflow reads the link (or checks the date and the address) and replies on the issue with what it found. It changes nothing on the site. The full guide is in [docs/adding-a-source.md](docs/adding-a-source.md).
+
+## Reviewing what people send
+
+Nothing anyone sends goes on the site until you approve it. Every few days, open Terminal in this folder and type `npm run review`. It lists what is waiting, then shows each one in turn with what the check found: the event's date and place, how many events a calendar has coming up, or the group's line and website. Answer `y` to add it, `n` to turn it down (you can give a short reason, which is posted to the person), or `l` to leave it for later. For a group it also asks which kind and category it belongs in, and lets you rewrite its one line. After the last one it runs the same checks the daily rebuild runs, shows what changed, and asks once more before it publishes. On that yes it saves the additions, publishes them, and closes each request with a thank-you. `node scripts/review.mjs --list` only lists what is waiting.
 
 By hand:
 
@@ -72,8 +77,9 @@ Eventbrite turns away GitHub's servers. `scripts/home-refresh.sh` runs the same 
 | `data/core-95472.json` | The ZIP outline from the Census Bureau, with Graton as a hole |
 | `scripts/lib/geo.mjs` | The two rings, the town list and the text tests |
 | `scripts/lib/detect.mjs` | Turns a pasted link into a feed |
-| `scripts/intake.mjs` | Checks a submission and opens the pull request |
-| `.github/ISSUE_TEMPLATE/` | The two Add forms |
+| `scripts/intake.mjs` | Checks a submission and replies on the issue |
+| `scripts/review.mjs` | `npm run review`: approve or turn down each submission, then publish |
+| `.github/ISSUE_TEMPLATE/` | The three Add forms |
 
 ## Running it locally
 

@@ -35,8 +35,10 @@ Feed formats the fetcher reads: `ics`, `luma`, `meetup`, `tockify`, `civicplus`,
 
 ## Submissions
 
-Issues from the Add forms are untrusted input. `scripts/intake.mjs` reads them from the event payload and passes values to `git` and `gh` as arguments. Never interpolate issue text into a shell command or a workflow expression.
+Issues from the Add forms are untrusted input. `scripts/intake.mjs` reads them from the event payload, and `scripts/review.mjs` reads them through `gh`; both pass values to `git` and `gh` as arguments. Never interpolate issue text into a shell command or a workflow expression.
 
 ## Deploys
 
-A push to `main` deploys. Merges to `main` and anything that changes what the public sees need Ben's go-ahead; pushing a working branch does not.
+A push to `main` deploys. Merges to `main` and anything that changes what the public sees need Jeff's go-ahead; pushing a working branch does not. Jeff runs the site from `jeffmendelsohn/sebastopol-events`; Ben's original is the `upstream` remote and is never pushed to.
+
+Submissions reach the site only through `npm run review` (`scripts/review.mjs`), which Jeff runs by hand. The intake workflow replies on issues and changes nothing.

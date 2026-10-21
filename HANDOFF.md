@@ -4,7 +4,7 @@ The state of Sebastopol Events, for whoever picks it up next. Read this and the 
 
 ## Who has it
 
-Ben (benvonwong-byte) built it with Claude on 2026-10-20 and asked for Jeff Mendelsohn (@jeffmendelsohn) to pick it up from here. Jeff is a collaborator on the repo with write access, which covers pushing, merging pull requests and running the workflows. Pages settings and a custom domain need admin access on the repo; ask Ben for it if you need those.
+Ben (benvonwong-byte) built it with Claude on 2026-10-20 and asked for Jeff Mendelsohn (@jeffmendelsohn) to pick it up from here. On 2026-10-20 Jeff moved it to his own repo, `jeffmendelsohn/sebastopol-events`, where he is the owner, so Pages settings and a custom domain are his to change.
 
 ## What it is
 
@@ -22,13 +22,13 @@ Jeff runs it from his own repo since 2026-10-20. Ben's repo is the `upstream` re
 
 ## What is built
 
-- **Three views and one area switch.** Groups, Map and Events, with "Sebastopol" (ZIP 95472) or "Sebastopol + nearby" (22 km). Outside the ZIP is amber: an amber edge and "Nearby · Town" label on rows, hollow pins on the map, a dashed ring around the shaded ZIP.
-- **The Add dialog.** Three paths: paste a calendar link (with a hint saying what kind it is), one event, and "No calendar yet" setup steps for Luma and Google Calendar. Both forms open a prefilled GitHub issue (`.github/ISSUE_TEMPLATE/`).
-- **Intake.** `.github/workflows/intake.yml` runs `scripts/intake.mjs` on those issues: it detects the link (`scripts/lib/detect.mjs`), reads it once, counts events in Sebastopol and nearby, replies on the issue, and opens a pull request adding it to `data/feeds.json` or `data/manual-events.json`.
+- **Three views and one area switch.** Events (the landing view), Map and Groups in one slim bar that stays at the top, with "Sebastopol" (ZIP 95472) or "Sebastopol + nearby" (22 km). Outside the ZIP is amber: an amber edge and "Nearby · Town" label on rows, hollow pins on the map, a dashed ring around the shaded ZIP.
+- **The Add dialog.** Four paths: one event, paste a calendar link (with a hint saying what kind it is), a group, and "No calendar yet" setup steps for Luma and Google Calendar. The forms open a prefilled GitHub issue (`.github/ISSUE_TEMPLATE/`).
+- **Intake.** `.github/workflows/intake.yml` runs `scripts/intake.mjs` on those issues: it detects the link (`scripts/lib/detect.mjs`), reads it once, counts events in Sebastopol and nearby, and replies on the issue. Since 2026-10-20 it changes nothing: Jeff approves each one with `npm run review` (`scripts/review.mjs`), which writes `data/feeds.json`, `data/manual-events.json` or `data/orgs.json`, publishes and closes the issue.
 - **Feeds out.** ICS (everything, Sebastopol only, one per category), RSS (`events.rss`) and JSON Feed (`feed.json`).
 - **Data.** 155 groups in `data/orgs.json` (101 in Sebastopol, 54 nearby), 52 of them with a calendar the fetcher reads, from four research passes on 2026-10-20. The fetcher also runs the aggregators in `scripts/lib/aggregators.mjs`: Luma, Eventbrite, Meetup, the Bohemian and Press Democrat calendars (CitySpark), the county library, What's Happening in Sebastopol, the city, the chamber, regional parks, Farm Trails and Sonoma County Tourism. Endpoints, headers and what failed are in `docs/aggregators.md`. The first full read found 2,197 events in the next 60 days: 788 in Sebastopol and 1,409 nearby.
 - **Cleanup rules in the fetcher.** Titles that announce a closure, a cancellation, a private rental or "no meeting" are dropped, and a repeating series (one group, one title) shows only its next six dates. Calendars that mix public events with internal meetings (the UCC church, St. Stephen's, the senior center, SRJC, the cultural center) have `skip` patterns on their feeds in `data/orgs.json`.
-- **Repo settings done.** Labels `add-source` and `add-event`; Actions may create pull requests (`default_workflow_permissions=write`); Pages enabled with `build_type=workflow`.
+- **Repo settings done** on Jeff's repo. Labels `add-source`, `add-event` and `add-group`; `default_workflow_permissions=write` so the morning run can commit listings; Pages enabled with `build_type=workflow`.
 
 ## What is left
 

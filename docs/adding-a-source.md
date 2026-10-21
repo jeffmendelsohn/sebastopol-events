@@ -53,25 +53,25 @@ For a one-off, use "One event" in the Add dialog. The date, the place and its st
 - For a calendar, it says what kind it found, how many events are coming up, and how many of those are in Sebastopol and nearby, with the first few listed.
 - For an event, it checks the date and finds the address on the map. If something is off, it says what to fix; editing the request runs the check again.
 
-Then a maintainer approves it, and it is on the site within a few minutes.
+Then it is reviewed by hand, usually within a few days. Once it is approved, an event or a group is on the site within a few minutes, and a calendar is read from the next morning on.
 
 ## For a maintainer
 
-Each request becomes an issue labelled `add-source` or `add-event` and a pull request on the branch `intake/issue-<number>`. The pull request changes one or two files:
+Each request becomes an issue labelled `add-source`, `add-event` or `add-group`. The bot only replies; it never changes a file. Run `npm run review` on your own computer to go through them. For each one it runs the same check again and asks yes, no or later. A yes writes one file:
 
 - `data/feeds.json` for a calendar. Every calendar here is filtered to the ring, so a county-wide calendar adds only what happens in Sebastopol and nearby.
 - `data/manual-events.json` for one event. Past events drop out of this file the next time an event is added.
-- `data/geocache.json`, the addresses the checker looked up.
+- `data/orgs.json` for a group, with the kind and category you pick. A group's calendar link, when it reads, becomes its feed.
 
-Before merging, open the link and check it is what it says and that the group is real and local. Merging closes the issue.
+Before saying yes, open the link and check that it is what it says and that the group is real and local. After the last one the review runs the gate and the build, and on a final yes commits, pushes (which publishes the site) and closes the approved issues. A no closes the issue with your reason.
 
 A calendar that belongs to a group in the directory is better as a feed on that group in `data/orgs.json`, so its events link back to the group. Move it there by hand when that applies, with `"scope": "local"` if the group's own events can be trusted to be local even when they list no address.
 
 ### The bot's permissions
 
-The workflow needs "Allow GitHub Actions to create and approve pull requests" turned on under Settings, Actions, General, Workflow permissions. Pull requests opened by the bot do not trigger other workflows; the deploy runs when the merge lands on `main`.
+The `Check a submission` workflow reads the repo and writes issue comments, nothing else.
 
-The issue text is untrusted. `scripts/intake.mjs` reads it from the event payload in Node and passes values to `git` and `gh` as arguments, never through a shell. Keep it that way.
+The issue text is untrusted. `scripts/intake.mjs` reads it from the event payload in Node and passes values to `gh` as arguments, never through a shell. `scripts/review.mjs` does the same with `git` and `gh`. Keep it that way.
 
 ### By hand
 
