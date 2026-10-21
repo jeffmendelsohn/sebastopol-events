@@ -57,14 +57,34 @@
     </section>
 
     <section id="view-map" role="tabpanel" aria-labelledby="tab-map" hidden>
-      <div class="tools tools-row">
-        <div class="seg" id="map-mode" role="group" aria-label="What the map shows">
-          <button data-mode="today">Today</button>
-          <button data-mode="week">Next 7 days</button>
-          <button data-mode="groups">Groups</button>
+      <div class="map-tools" id="map-tools">
+        <div class="tools-row">
+          <div class="seg" id="map-mode" role="group" aria-label="What the map shows">
+            <button data-mode="today">Today</button>
+            <button data-mode="weekend">Weekend</button>
+            <button data-mode="week">7 days</button>
+            <button data-mode="month">30 days</button>
+            <button data-mode="groups">Groups</button>
+          </div>
+          <div class="seg" id="map-time" role="group" aria-label="Time of day">
+            <button data-time="">Any time</button>
+            <button data-time="morning">Morning</button>
+            <button data-time="afternoon">Afternoon</button>
+            <button data-time="evening">Evening</button>
+          </div>
+          <div class="map-flags" id="map-flags" role="group" aria-label="Only show">
+            <button class="chip" data-flag="free">Free</button>
+            <button class="chip" data-flag="kids">Kids &amp; family</button>
+          </div>
+          <button class="btn ghost near-btn" id="near-me" type="button" title="Use your location to center the map and list the closest ten">Near me</button>
         </div>
-        <button class="btn ghost near-btn" id="near-me" type="button">Near me</button>
-        <span class="count" id="map-count"></span>
+        <div class="tool-line">
+          <label class="sr-only" for="m-search">Search the map</label>
+          <input class="search" id="m-search" type="search" placeholder="Search the map: music, farm, yoga" autocomplete="off">
+          <span class="count" id="map-count"></span>
+          <button class="inline-link map-clear" id="map-clear" type="button" hidden>Clear filters</button>
+        </div>
+        <div class="chips" id="map-chips" role="group" aria-label="Kind of event"></div>
       </div>
       <div id="map" role="region" aria-label="Map of Sebastopol and the towns around it"></div>
       <div class="legend" id="legend"></div>

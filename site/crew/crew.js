@@ -306,8 +306,11 @@ const townOf = (w) => { const s = String(w || "").toLowerCase().replace(/^(west|
 let crewOnMap = store.get("crew-map") !== "off";
 function mapLayer({ L, layer, mode }) {
   const btn = $("crew-map");
-  if (btn) btn.setAttribute("aria-pressed", String(crewOnMap));
-  if (!crewOnMap || mode === "groups") return;
+  if (btn) {
+    btn.setAttribute("aria-pressed", String(crewOnMap));
+    btn.textContent = crewOnMap ? "Crew posts: on" : "Crew posts: off";
+  }
+  if (!crewOnMap) return;
   const byTown = {};
   for (const d of POSTS) {
     if (d._state !== "live" && d._state !== "dir") continue;
@@ -341,7 +344,7 @@ function begin(crew) {
     detailExtra: (e) => e._crew ? (e.source === "crew" ? "" : `<p class="item-meta">Also shared in the Crew by ${esc(e._crew.who)}.</p>`) + replyBox(e._crew, e.source === "crew") : "",
     ready: (api) => {
       API = api;
-      document.getElementById("near-me")?.insertAdjacentHTML("beforebegin", `<button class="btn ghost near-btn" id="crew-map" type="button" aria-pressed="${crewOnMap}">Crew posts</button>`);
+      document.getElementById("near-me")?.insertAdjacentHTML("beforebegin", `<button class="btn ghost near-btn" id="crew-map" type="button" aria-pressed="${crewOnMap}" title="Shows the crew's asks, offers and evergreen posts as numbered pins, one per town">${crewOnMap ? "Crew posts: on" : "Crew posts: off"}</button>`);
       stats(); counts(); setBar();
       if (api.state.view === "map") api.setView("map");
     },

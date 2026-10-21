@@ -96,8 +96,8 @@ const sectionOf = (o) => SECTIONS.find((s) => s.kinds.includes(o.kind)) ?? SECTI
 const VIEWS = ["events", "map", "groups", ...Object.keys(EXT.views ?? {})];
 const AREAS = ["sebastopol", "nearby"];
 const DEFAULTS = { map: "week", area: "sebastopol" };
-const state = { view: "events", gq: "", kind: "", eq: "", cat: "", org: "", event: "", group: "", map: "week", area: "sebastopol" };
-const KEYS = ["gq", "kind", "eq", "cat", "org", "event", "group", "map", "area"];
+const state = { mt: "", mc: "", mf: "", mq: "", view: "events", gq: "", kind: "", eq: "", cat: "", org: "", event: "", group: "", map: "week", area: "sebastopol" };
+const KEYS = ["gq", "kind", "eq", "cat", "org", "event", "group", "map", "area", "mt", "mc", "mf", "mq"];
 
 function readHash() {
   const p = new URLSearchParams(location.hash.slice(1));
@@ -121,16 +121,49 @@ function reveal(x) {
 }
 
 // ---------- Hero and the area switch ----------
+// The map's date window: [first day, last day]. "Weekend" is Friday to
+// Sunday, this week's if it has started, next week's otherwise.
 function mapWindow() {
   const t = todayKey();
-  return state.map === "today" ? t : keyPlus(t, 6);
+  if (state.map === "today") return [t, t];
+  if (state.map === "month") return [t, keyPlus(t, 29)];
+  if (state.map === "weekend") {
+    const wd = noon(t).getUTCDay();
+    const toSun = (7 - wd) % 7;
+    return [wd === 0 || wd >= 5 ? t : keyPlus(t, 5 - wd), keyPlus(t, toSun)];
+  }
+  return [t, keyPlus(t, 6)];
+}
+const hourFmt = new Intl.DateTimeFormat("en-US", { timeZone: TZ, hour: "numeric", hourCycle: "h23" });
+const KIDS = /\b(kids?|children|child|family|families|teens?|youth|storytime|toddlers?|baby|babies)\b/;
+const flagsOn = () => new Set(state.mf.split(",").filter(Boolean));
+// Every map filter except the area (the area switch counts both) and,
+// with ignoreCat, the category (the pills count each one).
+function mapEventPasses(e, { ignoreCat = false, ignoreArea = false } = {}) {
+  if (!ignoreArea && !inArea(e)) return false;
+  const [first, last] = mapWindow();
+  if (e.day < first || e.day > last) return false;
+  if (state.mt && !e.allDay) {
+    const h = Number(hourFmt.format(new Date(e.start)));
+    const slot = h < 12 ? "morning" : h < 17 ? "afternoon" : "evening";
+    if (slot !== state.mt) return false;
+  }
+  const f = flagsOn();
+  if (f.has("free") && e.free !== true) return false;
+  if (f.has("kids") && !KIDS.test(e._text)) return false;
+  if (!ignoreCat && state.mc && e.domain !== state.mc) return false;
+  const w = words(state.mq);
+  return !w.length || w.every((t) => e._text.includes(t));
+}
+function mapGroupPasses(o, { ignoreCat = false, ignoreArea = false } = {}) {
+  if (!ignoreArea && !inArea(o)) return false;
+  if (!ignoreCat && state.mc && !(o.domains ?? []).includes(state.mc)) return false;
+  const w = words(state.mq);
+  return !w.length || w.every((t) => o._text.includes(t));
 }
 function areaPool() {
-  if (state.view === "groups" || (state.view === "map" && state.map === "groups")) return ORGS;
-  if (state.view === "map") {
-    const last = mapWindow();
-    return EVENTS.filter((e) => e.day <= last);
-  }
+  if (state.view === "groups") return ORGS;
+  if (state.view === "map") return state.map === "groups" ? ORGS.filter((o) => mapGroupPasses(o, { ignoreArea: true })) : EVENTS.filter((e) => mapEventPasses(e, { ignoreArea: true }));
   return EVENTS;
 }
 // The bar: which view is on, the area counts, and what Add offers.
@@ -462,8 +495,6 @@ function initMap() {
 function renderLegend() {
   const groups = state.map === "groups";
   $("#legend").innerHTML =
-    DOMAINS.map((d) => `<span><span class="sw" style="--c:${d.color}"></span>${esc(d.label)}</span>`).join("") +
-    `<span class="break"></span>` +
     `<span><span class="zone"></span>Sebastopol, ZIP 95472</span>` +
     `<span><span class="solid"${groups ? ' style="border-radius:0"' : ""}></span>${groups ? "Group" : "Event"} in Sebastopol</span>` +
     (state.area === "nearby"
@@ -528,7 +559,7 @@ function renderNear(pins, kind) {
 function renderMap() {
   initMap();
   if (!map) return;
-  for (const b of $$("#map-mode button")) b.setAttribute("aria-pressed", String(b.dataset.mode === state.map));
+  renderMapTools();
   renderLegend();
   layer.clearLayers();
   markers.clear();
@@ -538,7 +569,7 @@ function renderMap() {
     : null;
   let near = [];
   if (state.map === "groups") {
-    const list = ORGS.filter(inArea);
+    const list = ORGS.filter((o) => mapGroupPasses(o));
     const pins = spread(list.filter((o) => Number.isFinite(o.lat)).map((o) => ({ o, lat: o.lat, lng: o.lng })));
     for (const { o, lat, lng } of pins) {
       const icon = L.divIcon({ className: "", html: `<div class="pin-org${isNear(o) ? " near" : ""}" style="--c:${colorOf(firstDomain(o))}"></div>`, iconSize: [13, 13] });
@@ -549,11 +580,10 @@ function renderMap() {
         .addTo(layer);
       markers.set(o.id, m);
     }
-    $("#map-count").textContent = `${pins.length} of ${list.length} groups have a fixed address`;
+    $("#map-count").textContent = `${pins.length} of ${list.length} group${list.length === 1 ? "" : "s"} on the map`;
     near = renderNear(pins, "groups") ?? [];
   } else {
-    const last = mapWindow();
-    const list = EVENTS.filter((e) => inArea(e) && (e.day <= last || (mapFocus?.kind === "event" && mapFocus.id === e.id)));
+    const list = EVENTS.filter((e) => mapEventPasses(e) || (mapFocus?.kind === "event" && mapFocus.id === e.id));
     const pins = spread(list.filter((e) => Number.isFinite(e.lat)).map((e) => ({ e, lat: e.lat, lng: e.lng })));
     // Nearby pins go down first, so Sebastopol's sit on top where they overlap.
     pins.sort((a, b) => Number(!isNear(a.e)) - Number(!isNear(b.e)));
@@ -568,7 +598,7 @@ function renderMap() {
         .addTo(layer);
       markers.set(e.id, m);
     }
-    $("#map-count").textContent = `${list.length} event${list.length === 1 ? "" : "s"}, ${pins.length} with an address`;
+    $("#map-count").textContent = `${pins.length} of ${list.length} event${list.length === 1 ? "" : "s"} on the map`;
     near = renderNear(pins, "events") ?? [];
   }
   EXT.mapLayer?.({ map, L, layer, mode: state.map, me });
@@ -588,6 +618,28 @@ function renderMap() {
     }
     mapFocus = null;
   }, 0);
+}
+
+// The filter bar above the map: which buttons are on, and the category
+// pills with counts for what the other filters leave.
+function renderMapTools() {
+  const groups = state.map === "groups";
+  for (const b of $$("#map-mode button")) b.setAttribute("aria-pressed", String(b.dataset.mode === state.map));
+  for (const b of $$("#map-time button")) b.setAttribute("aria-pressed", String(b.dataset.time === state.mt));
+  const f = flagsOn();
+  for (const b of $$("#map-flags [data-flag]")) b.setAttribute("aria-pressed", String(f.has(b.dataset.flag)));
+  $("#map-time").hidden = groups;
+  $("#map-flags").hidden = groups;
+  const pool = groups ? ORGS.filter((o) => mapGroupPasses(o, { ignoreCat: true })) : EVENTS.filter((e) => mapEventPasses(e, { ignoreCat: true }));
+  const counts = new Map();
+  for (const x of pool) for (const d of groups ? x.domains ?? [] : [x.domain]) counts.set(d, (counts.get(d) ?? 0) + 1);
+  $("#map-chips").innerHTML =
+    `<button class="chip" data-mcat="" aria-pressed="${!state.mc}">All <span class="n">${pool.length}</span></button>` +
+    DOMAINS.filter((d) => counts.get(d.id) || state.mc === d.id)
+      .map((d) => `<button class="chip" data-mcat="${d.id}" aria-pressed="${state.mc === d.id}" style="--c:${d.color}"><span class="sw"></span>${esc(d.label)} <span class="n">${counts.get(d.id) ?? 0}</span></button>`)
+      .join("");
+  if ($("#m-search").value !== state.mq) $("#m-search").value = state.mq;
+  $("#map-clear").hidden = !(state.mt || state.mf || state.mc || state.mq);
 }
 
 // On a screen with a mouse, every pin says what it is on hover: the first
@@ -625,6 +677,8 @@ function openFromMap(view, id) {
 }
 function showOnMap(kind, id) {
   mapFocus = { kind, id };
+  // A filter could hide the very pin being shown.
+  Object.assign(state, { mt: "", mc: "", mf: "", mq: "" });
   reveal(kind === "group" ? orgById.get(id) : eventById.get(id));
   state.map = kind === "group" ? "groups" : state.map === "groups" ? "week" : state.map;
   setView("map");
@@ -926,13 +980,44 @@ function wire() {
     const m = b && markers.get(b.dataset.near);
     if (m) { map.setView(m.getLatLng(), 15); m.openPopup(); $("#map").scrollIntoView({ block: "center" }); }
   });
+  const mapChanged = () => {
+    writeHash();
+    renderHero();
+    renderMap();
+  };
   $("#map-mode").addEventListener("click", (e) => {
     const b = e.target.closest("[data-mode]");
     if (!b) return;
     state.map = b.dataset.mode;
-    writeHash();
-    renderHero();
-    renderMap();
+    mapChanged();
+  });
+  $("#map-time").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-time]");
+    if (!b) return;
+    state.mt = b.dataset.time;
+    mapChanged();
+  });
+  $("#map-flags").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-flag]");
+    if (!b) return;
+    const f = flagsOn();
+    f.has(b.dataset.flag) ? f.delete(b.dataset.flag) : f.add(b.dataset.flag);
+    state.mf = [...f].sort().join(",");
+    mapChanged();
+  });
+  $("#map-chips").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-mcat]");
+    if (!b) return;
+    state.mc = b.dataset.mcat;
+    mapChanged();
+  });
+  $("#m-search").addEventListener("input", debounce((e) => {
+    state.mq = e.target.value.trim();
+    mapChanged();
+  }, 250));
+  $("#map-clear").addEventListener("click", () => {
+    Object.assign(state, { mt: "", mf: "", mc: "", mq: "" });
+    mapChanged();
   });
 
   // Events
@@ -1028,13 +1113,15 @@ function trackHeights() {
   const root = document.documentElement.style;
   const bar = $(".bar");
   const pinned = $("#e-sticky");
+  const mapTools = $("#map-tools");
   const measure = () => {
     if (bar) root.setProperty("--top", bar.offsetHeight + "px");
     if (pinned?.offsetHeight) root.setProperty("--sticky-h", pinned.offsetHeight + "px");
+    if (mapTools?.offsetHeight) root.setProperty("--map-tools-h", mapTools.offsetHeight + "px");
   };
   if (window.ResizeObserver) {
     const ro = new ResizeObserver(measure);
-    for (const el of [bar, pinned]) if (el) ro.observe(el);
+    for (const el of [bar, pinned, mapTools]) if (el) ro.observe(el);
   }
   measure();
 }
