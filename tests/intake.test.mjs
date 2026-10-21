@@ -61,7 +61,7 @@ test("a past date and a missing place are both reported", async () => {
 // pasted dash in it.
 const DASH = String.fromCharCode(0x2014);
 const groupBody = [
-  "### Group name", "", "Ragle Trail Crew", "",
+  "### Group name", "", "Example Trail Crew", "",
   "### Website", "", "https://example.org/trails", "",
   "### What the group does, in one line", "", "Volunteers who keep up the trails in Ragle Ranch Park " + DASH + " every month.", "",
   "### How someone can take part", "", "Come to a Saturday work day.", "",
@@ -73,7 +73,7 @@ const groupBody = [
 test("a group with a name, a line and a website passes, and loses its em dash", async () => {
   const r = await checkGroup(formFields(groupBody));
   assert.equal(r.ok, true);
-  assert.equal(r.group.id, "ragle-trail-crew");
+  assert.equal(r.group.id, "example-trail-crew");
   assert.equal(r.group.url, "https://example.org/trails");
   assert.equal(r.group.area, "sebastopol");
   assert.ok(!r.group.what.includes(DASH));
