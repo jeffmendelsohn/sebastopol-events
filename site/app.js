@@ -442,8 +442,18 @@ function initMap() {
     coreBounds = core.getBounds();
   }
   layer = L.layerGroup().addTo(map);
+  // Hover labels hide while a popup is open, so the two never overlap.
+  map.on("popupclose", () => map.getContainer().classList.remove("popup-on"));
   map.on("popupopen", (ev) => {
+    map.getContainer().classList.add("popup-on");
     const el = ev.popup.getElement();
+    // The title opens the same thing as the popup's button.
+    const go = el?.querySelector(".go");
+    const title = el?.querySelector(".pt");
+    if (go && title) {
+      title.classList.add("pt-link");
+      title.addEventListener("click", () => go.click());
+    }
     el?.querySelector("[data-open-event]")?.addEventListener("click", (b) => openFromMap("events", b.currentTarget.dataset.openEvent));
     el?.querySelector("[data-open-group]")?.addEventListener("click", (b) => openFromMap("groups", b.currentTarget.dataset.openGroup));
   });
@@ -562,6 +572,7 @@ function renderMap() {
     near = renderNear(pins, "events") ?? [];
   }
   EXT.mapLayer?.({ map, L, layer, mode: state.map, me });
+  addHoverLabels(layer);
   setTimeout(() => {
     map.invalidateSize();
     const m = mapFocus && markers.get(mapFocus.id);
@@ -577,6 +588,27 @@ function renderMap() {
     }
     mapFocus = null;
   }, 0);
+}
+
+// On a screen with a mouse, every pin says what it is on hover: the first
+// lines of its popup (the tag, the name, the time and place). The popup
+// itself still opens on a click or a tap.
+const canHover = window.matchMedia?.("(hover: hover)").matches ?? true;
+function addHoverLabels(group) {
+  if (!canHover) return;
+  group.eachLayer((m) => {
+    const pop = m.getPopup?.();
+    if (!pop || m.getTooltip?.()) return;
+    const box = document.createElement("div");
+    box.innerHTML = String(pop.getContent());
+    const lines = [".where-tag", ".pt", ".pm"].map((sel) => box.querySelector(sel)?.textContent.trim()).filter(Boolean);
+    if (!lines.length) return;
+    const [first, ...rest] = lines;
+    const html = box.querySelector(".where-tag")
+      ? `<span class="where-tag">${esc(first)}</span><b>${esc(rest[0] ?? "")}</b>${rest[1] ? `<span>${esc(rest[1])}</span>` : ""}`
+      : `<b>${esc(first)}</b>${rest[0] ? `<span>${esc(rest[0])}</span>` : ""}`;
+    m.bindTooltip(html, { direction: "top", offset: [0, -8], className: "pin-tip", opacity: 1 });
+  });
 }
 
 function openFromMap(view, id) {
