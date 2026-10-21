@@ -33,6 +33,10 @@ Public contact channels only. Never record a calendar id that is someone's perso
 
 Feed formats the fetcher reads: `ics`, `luma`, `meetup`, `tockify`, `civicplus`, `squarespace`, `tribe`, `mobilize`, `rss`, `rss-future`, `jsonld`, `eventbrite`, `mahina`, `fullcalendar`. A feed's `scope` is `local` (keep events with no place, they are the group's own) or `filter` (keep only events placed inside the ring).
 
+## The crew page
+
+`scripts/build.mjs` writes `dist/crew/index.html` from the built main page, swapping in the crew parts at fixed points in `site/index.html`: `<head>`, `<body>`, the `.brand` link, the Groups tab button, `</header>`, `<main class="wrap">` and the `app.js` script tag. Change any of those and the build stops with "crew page: anchor not found"; update the crew step in `build.mjs` in the same commit. `site/app.js` reads an optional `window.SE` that only the crew page sets.
+
 ## Submissions
 
 Issues from the Add forms are untrusted input. `scripts/intake.mjs` reads them from the event payload, and `scripts/review.mjs` reads them through `gh`; both pass values to `git` and `gh` as arguments. Never interpolate issue text into a shell command or a workflow expression.
