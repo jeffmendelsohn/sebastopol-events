@@ -106,7 +106,8 @@ main{padding-block:4px 56px}
 .item>summary:hover,.item[open]>summary{background:var(--hover)}
 .line1{display:flex;gap:8px;align-items:baseline;min-width:0}
 .ttl{font-weight:700;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-.who{color:var(--muted);font-size:12px;white-space:nowrap;flex:none}
+.who{color:var(--muted);font-size:12px;white-space:nowrap;flex:0 4 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.ttl{flex:0 1 auto}
 .line1 .pills{margin-left:auto;flex-wrap:nowrap;overflow:hidden;flex:0 1 auto;min-width:0}
 .sum{color:var(--soft);font-size:12.5px;font-weight:300;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
 .pills{display:flex;gap:4px}
@@ -162,8 +163,51 @@ footer{background:var(--moss);color:var(--moss-soft);font-size:12px}
 footer .wrap{padding-block:18px 26px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
 footer a{color:var(--moss-ink)}
 
+/* date strip */
+.strip{display:flex;overflow-x:auto;scrollbar-width:none;border:1px solid var(--line);border-radius:12px;background:var(--row)}
+.strip::-webkit-scrollbar{display:none}
+.ds{flex:0 0 46px;border:0;border-right:1px solid var(--line);background:none;padding:4px 0;display:flex;flex-direction:column;align-items:center;line-height:1.15}
+.ds:last-child{border-right:0}
+.ds:hover{background:var(--hover)}
+.ds .w{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.ds .d{font-family:var(--display);font-size:17px;font-weight:500;color:var(--ink)}
+.ds .c{font-size:9.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.ds.today .d{color:var(--rust)}
+.ds.focus{background:var(--moss)}
+.ds.focus .w,.ds.focus .d,.ds.focus .c{color:var(--moss-ink)}
+.group{scroll-margin-top:calc(var(--barh,120px) + 8px)}
+.addbtn{border:0;background:var(--rust-btn);color:#fff;font-weight:700;font-size:13px;padding:7px 16px;border-radius:8px;letter-spacing:.02em}
+.callout{margin-top:22px;padding:16px 18px;border:1px dashed var(--line);border-radius:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.callout p{margin:0 auto 0 0;font-family:var(--display);font-size:18px}
+.foot-add{background:none;border:0;color:var(--moss-ink);text-decoration:underline;padding:0;font-size:12px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--page);padding:8px 16px;border-radius:999px;font-size:13px;font-weight:700;z-index:50}
+/* add dialog */
+dialog{border:0;padding:0;border-radius:16px;background:var(--page);color:var(--ink);width:min(560px,calc(100vw - 32px));max-height:calc(100dvh - 40px);box-shadow:0 20px 60px rgba(0,0,0,.3)}
+dialog::backdrop{background:rgba(30,25,21,.45)}
+.dlg-head{display:flex;justify-content:space-between;align-items:center;background:var(--moss);color:var(--moss-ink);padding:10px 16px}
+.dlg-head .eyebrow{color:var(--moss-soft)}
+.x{background:none;border:0;color:var(--moss-ink);font-size:24px;line-height:1;padding:0 4px}
+.dlg-body{padding:16px 18px 20px;display:flex;flex-direction:column;gap:12px}
+.dlg-body h2{font-family:var(--display);font-weight:400;font-size:28px;margin:0}
+.dlg-body h3{font-family:var(--display);font-weight:500;font-size:18px;margin:6px 0 0}
+.dlg-body p,.dlg-body li{font-weight:300;font-size:14px;margin:0}
+.dlg-body ol{margin:0;padding-left:20px;display:grid;gap:4px}
+.add-tabs{display:flex;gap:2px;flex-wrap:wrap;border:1px solid var(--line);border-radius:999px;padding:3px;background:var(--row);align-self:flex-start}
+.add-tabs button{border:0;background:none;padding:5px 12px;border-radius:999px;font-weight:700;font-size:12px;color:var(--soft)}
+.add-tabs button[aria-selected="true"]{background:var(--ink);color:var(--page)}
+.add-pane{display:flex;flex-direction:column;gap:10px}
+.field{display:flex;flex-direction:column;gap:4px;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--rust)}
+.field input,.field textarea{font:inherit;font-size:14px;letter-spacing:0;text-transform:none;font-weight:400;color:var(--ink);background:var(--row);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.field input[aria-invalid="true"]{border-color:var(--hot)}
+.field-row{display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px}
+.small{font-size:12px!important;color:var(--muted)}
+.detect{font-size:12px;color:var(--muted);min-height:1em}
+.detect.ok{color:var(--moss);font-weight:700}
+.inline-link{background:none;border:0;padding:0;color:var(--rust);text-decoration:underline;font-weight:700}
 @media (max-width:780px){.line1 .pills{display:none}.pills.m{display:flex}}
 @media (max-width:640px){
+  .field-row{grid-template-columns:1fr 1fr}
+  .band .addbtn{margin-left:auto}
   .nav{margin-left:0;width:100%}.nav button{flex:1;font-size:15px;padding:5px 6px}
   .item>summary,.ev>summary{grid-template-columns:18px minmax(0,1fr);padding-right:12px;align-items:start}
   .ev>summary{grid-template-columns:54px minmax(0,1fr)}
@@ -208,6 +252,7 @@ footer a{color:var(--moss-ink)}
       <button role="tab" data-v="dir" aria-selected="false">Evergreen <i id="n-dir"></i></button>
       <button role="tab" data-v="arch" aria-selected="false">Archive <i id="n-arch"></i></button>
     </nav>
+    <button class="addbtn" data-open-add="event">Add</button>
   </div></header>
   <div class="sub"><div class="wrap"><div class="stats" id="stats"></div><span id="synced"></span></div></div>
 
@@ -216,15 +261,13 @@ footer a{color:var(--moss-ink)}
       <div class="seg" role="group" aria-label="Area" id="area">
         <button data-v="all" aria-pressed="true">+ Nearby</button><button data-v="sebastopol" aria-pressed="false">Sebastopol</button>
       </div>
-      <div class="seg" role="group" aria-label="When" id="when">
-        <button data-v="1" aria-pressed="false">Today</button><button data-v="7" aria-pressed="true">7 days</button><button data-v="30" aria-pressed="false">30 days</button>
-      </div>
       <div class="seg" role="group" aria-label="Gifts or paid" id="lens" hidden>
         <button class="giftbtn" data-v="gift" aria-pressed="true">∞ Infinite Gifts</button><button data-v="paid" aria-pressed="false">Paid &amp; Trade</button>
       </div>
       <label class="search" for="q"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" type="search" placeholder="Search" autocomplete="off"></label>
     </div>
     <div class="r2" id="filters"></div>
+    <div class="strip" id="strip" aria-label="Jump to a day"></div>
     <div class="legend" id="legend" hidden>
       <span><b class="hm h-hot"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></b>Urgent</span>
       <span><b class="hm h-fresh"><i class="on"></i><i class="on"></i><i class="on"></i><i></i></b>Fresh</span>
@@ -238,8 +281,60 @@ footer a{color:var(--moss-ink)}
     <div id="banner"></div>
     <main id="main"></main>
   </div>
-  <footer><div class="wrap"><span>Events from <a href="../">Sebastopol Events</a>. Asks and offers from the Soul-noma Crew Signal chat; summaries by Claude.</span><a href="#" id="lock">Lock</a></div></footer>
+  <footer><div class="wrap"><span>Events from <a href="../">Sebastopol Events</a>. Asks and offers from the Soul-noma Crew Signal chat; summaries by Claude.</span><span><button class="foot-add" data-open-add="event">Add an event, a calendar or a group</button> · <a href="#" id="lock">Lock</a></span></div></footer>
 </div>
+
+<dialog id="add-dialog" aria-labelledby="add-title">
+  <div class="dlg-head"><p class="eyebrow">Add to the calendar</p><button class="x" data-close aria-label="Close">&times;</button></div>
+  <div class="dlg-body">
+    <h2 id="add-title">Get your events here</h2>
+    <div class="add-tabs" role="tablist">
+      <button role="tab" data-add="event" aria-selected="true">One event</button>
+      <button role="tab" data-add="feed" aria-selected="false">A calendar</button>
+      <button role="tab" data-add="group" aria-selected="false">A group</button>
+      <button role="tab" data-add="guide" aria-selected="false">No calendar yet</button>
+    </div>
+    <div class="add-pane" data-pane="event">
+      <label class="field"><span>Event name</span><input id="ev-name" type="text"></label>
+      <div class="field-row">
+        <label class="field"><span>Date</span><input id="ev-date" type="date"></label>
+        <label class="field"><span>Start</span><input id="ev-start" type="time"></label>
+        <label class="field"><span>End</span><input id="ev-end" type="time"></label>
+      </div>
+      <label class="field"><span>Place and street address</span><input id="ev-place" type="text" placeholder="Ives Park, 7400 Willow St, Sebastopol"></label>
+      <label class="field"><span>Link for details or tickets</span><input id="ev-link" type="url" placeholder="https://"></label>
+      <label class="field"><span>Who is hosting it</span><input id="ev-host" type="text"></label>
+      <label class="field"><span>One or two sentences about it</span><textarea id="ev-about" rows="2"></textarea></label>
+      <div class="acts"><button class="go" id="ev-send">Send it</button></div>
+      <p class="small">Opens a short form on GitHub (free account). It goes on the calendar once reviewed.</p>
+    </div>
+    <div class="add-pane" data-pane="feed" hidden>
+      <p>Paste the link to wherever your group keeps its events. It is read every morning.</p>
+      <label class="field"><span>Calendar or feed link</span><input id="feed-url" type="url" placeholder="lu.ma/your-calendar, Google Calendar, meetup.com/your-group, RSS"></label>
+      <p class="detect" id="feed-detect" aria-live="polite"></p>
+      <label class="field"><span>Group or calendar name</span><input id="feed-name" type="text"></label>
+      <div class="acts"><button class="go" id="feed-send">Send it</button></div>
+      <p class="small">Luma, Google Calendar, Meetup, Eventbrite, Mobilize, Tockify, .ics or webcal, RSS, Squarespace and WordPress events pages.</p>
+    </div>
+    <div class="add-pane" data-pane="group" hidden>
+      <label class="field"><span>Group name</span><input id="gr-name" type="text"></label>
+      <label class="field"><span>Website</span><input id="gr-url" type="url" placeholder="https://"></label>
+      <label class="field"><span>What the group does, in one line</span><input id="gr-what" type="text" maxlength="260"></label>
+      <label class="field"><span>How someone can take part</span><input id="gr-plugin" type="text"></label>
+      <label class="field"><span>Street address</span><input id="gr-address" type="text"></label>
+      <label class="field"><span>Calendar or events page</span><input id="gr-feed" type="url" placeholder="https://"></label>
+      <label class="field"><span>Instagram</span><input id="gr-instagram" type="url" placeholder="https://instagram.com/..."></label>
+      <div class="acts"><button class="go" id="gr-send">Send it</button></div>
+    </div>
+    <div class="add-pane" data-pane="guide" hidden>
+      <h3>Luma (easiest)</h3>
+      <ol><li>Sign up free at <a href="https://luma.com" target="_blank" rel="noopener">luma.com</a>.</li><li>Create a calendar for your group and add events.</li><li>Paste its link under <button class="inline-link" data-goto="feed">A calendar</button>.</li></ol>
+      <h3>Google Calendar</h3>
+      <ol><li>Make a calendar for your group's public events.</li><li>In its settings, tick "Make available to public".</li><li>Copy "Public address in iCal format" and paste it under <button class="inline-link" data-goto="feed">A calendar</button>.</li></ol>
+    </div>
+  </div>
+</dialog>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
 <script>
 "use strict";
@@ -332,7 +427,8 @@ function mergeEvents(scraped, posts){
 }
 
 /* ---------- state ---------- */
-const S = {tab:"events", lens:store.get("crew-lens") || "gift", q:"", f:"", kind:"", area:store.get("crew-area") || "all", when:7, shown:{}};
+const S = {tab:"events", lens:store.get("crew-lens") || "gift", q:"", f:"", kind:"", area:store.get("crew-area") || "all", shown:{}};
+const REPO = "jeffmendelsohn/sebastopol-events";
 
 const hcls = d => d._hot ? "h-hot" : d._h > .6 ? "h-fresh" : d._h > .3 ? "h-aging" : "h-fading";
 const meter = d => d._state === "dir" ? `<svg class="ever" role="img" aria-label="Evergreen"><use href="#tree"/></svg>`
@@ -408,7 +504,7 @@ function evDetail(e){
   const extra = e._crew ? `<p class="meta">Also shared in the Crew by ${esc(e._crew.who)}.</p>` : "";
   return `<div class="detail evd"><div style="min-width:0"><p class="orig">${esc(plain(e.description).slice(0, 1500) || "No description.")}</p>
     <p class="meta">${esc([e.venue, e.address].filter(Boolean).join(" · "))}${e.org ? " · " + esc(e.org) : ""}</p>${extra}</div>
-    <div class="acts">${e.url ? `<a class="go" href="${esc(e.url)}" target="_blank" rel="noopener">Event page ↗</a>` : ""}</div></div>`;
+    <div class="acts" style="flex-direction:column;align-items:stretch">${e.url ? `<a class="go" href="${esc(safe(e.url))}" target="_blank" rel="noopener">Event page ↗</a>` : ""}<button class="ghost" data-ics>Add to calendar</button><button class="ghost" data-share>Share</button></div></div>`;
 }
 
 /* ---------- render ---------- */
@@ -422,22 +518,22 @@ function chips(list, key, labelOf, dotOf){
   return `<button class="f" data-cat="" aria-pressed="${!S.f}">All<i>${list.length}</i></button>` +
     Object.keys(c).sort((a,b) => c[b] - c[a]).map(k => `<button class="f" data-cat="${esc(k)}" aria-pressed="${S.f===k}">${dotOf ? `<span class="dot" style="background:${dotOf(k)}"></span>` : ""}${esc(labelOf(k))}<i>${c[k]}</i></button>`).join("");
 }
-function group(title, items, key, fn){
+function group(title, items, key, fn, id){
   if (!items.length) return "";
   const lim = S.shown[key] || 40;
-  return `<section class="group"><div class="gh"><h3>${title}</h3><span>${items.length}</span></div>
+  return `<section class="group"${id ? ` id="${id}" data-day="${id.slice(2)}"` : ""}><div class="gh"><h3>${title}</h3><span>${items.length}</span></div>
     <div class="list">${items.slice(0, lim).map(fn).join("")}</div>
     ${items.length > lim ? `<div class="more"><button data-more="${key}">Show ${Math.min(40, items.length - lim)} more</button></div>` : ""}</section>`;
 }
 function render(){
   const ev = S.tab === "events";
-  $("area").hidden = !ev; $("when").hidden = !ev; $("lens").hidden = ev; $("legend").hidden = ev;
+  $("area").hidden = !ev; $("strip").hidden = !ev; $("lens").hidden = ev; $("legend").hidden = ev;
   $("banner").innerHTML = !ev && S.lens === "gift"
     ? `<div class="gb"><svg viewBox="180 110 320 180" aria-hidden="true"><path stroke="var(--moss)" fill="none" stroke-width="22" stroke-linecap="round" d="M340,200 C340,123 458,123 458,200 C458,277 340,277 340,200"/><path stroke="var(--rust-btn)" fill="none" stroke-width="22" stroke-linecap="round" d="M340,200 C340,123 222,123 222,200 C222,277 340,277 340,200"/><circle cx="340" cy="200" r="8" fill="var(--gold)"/></svg><h2>Do something you love for others, <em>and let them do something they love for you.</em></h2></div>` : "";
   let html = "";
   if (ev) {
-    const end = iso(new Date(today.getTime() + (S.when - 1) * DAY)), t0 = iso(today);
-    const base = EVENTS.filter(e => (S.area === "all" || e.area === "sebastopol") && evMatch(e) && (e._day ? e._day >= t0 && e._day <= end : true));
+    const t0 = iso(today);
+    const base = EVENTS.filter(e => (S.area === "all" || e.area === "sebastopol") && evMatch(e) && (!e._day || e._day >= t0));
     $("filters").innerHTML = `<button class="f" data-crew="1" aria-pressed="${S.kind==="crew"}"><span class="dot" style="background:var(--rust)"></span>From the Crew<i>${base.filter(e => e._kind === "crew" || e._crew).length}</i></button><span class="sep"></span>` +
       chips(base, e => e.domain, k => (DOM[k]||{}).label || k, k => (DOM[k]||{}).color || "var(--muted)");
     VIEW = base.filter(e => (!S.f || e.domain === S.f) && (S.kind !== "crew" || e._kind === "crew" || e._crew));
@@ -446,8 +542,11 @@ function render(){
       const list = days[k].sort((a,b) => (a._kind === "crew") - (b._kind === "crew") || String(a.start).localeCompare(String(b.start)));
       const dt = k === "~" ? null : P(k);
       const title = !dt ? "Date in post" : k === t0 ? "Today" : (dt - today) / DAY === 1 ? "Tomorrow" : dt.toLocaleDateString(undefined, {weekday:"long", month:"short", day:"numeric"});
-      return group(title, list, "d:" + k, e => evRow(e, VIEW.indexOf(e)));
+      return group(title, list, "d:" + k, e => evRow(e, VIEW.indexOf(e)), dt ? "d-" + k : "");
     }).join("");
+    const dayKeys = Object.keys(days).filter(k => k !== "~").sort();
+    $("strip").innerHTML = dayKeys.map(k => { const dt = P(k); return `<button class="ds${k === t0 ? " today" : ""}" data-day="${k}"><span class="w">${dt.toLocaleDateString(undefined, {weekday:"short"})}</span><span class="d">${dt.getDate()}</span><span class="c">${days[k].length}</span></button>`; }).join("");
+    if (VIEW.length) html += `<div class="callout"><p>Missing something?</p><button class="go" data-open-add="event">Add an event</button><button class="ghost" data-open-add="feed">Add a calendar</button></div>`;
   } else {
     const base = DATA.filter(d => d._state === S.tab && lensOk(d) && match(d));
     if (S.f && !base.some(d => d.cat === S.f)) S.f = "";
@@ -474,8 +573,8 @@ function render(){
   counts();
 }
 function counts(){
-  const t0 = iso(today), end = iso(new Date(today.getTime() + (S.when - 1) * DAY));
-  $("n-events").textContent = EVENTS.filter(e => (S.area === "all" || e.area === "sebastopol") && (!e._day || (e._day >= t0 && e._day <= end))).length.toLocaleString();
+  const t0 = iso(today);
+  $("n-events").textContent = EVENTS.filter(e => (S.area === "all" || e.area === "sebastopol") && (!e._day || e._day >= t0)).length.toLocaleString();
   for (const t of ["live","dir","arch"]) $("n-" + t).textContent = DATA.filter(d => d._state === t && lensOk(d)).length.toLocaleString();
 }
 function stats(){
@@ -485,16 +584,64 @@ function stats(){
   $("synced").textContent = SYNCED ? "Crew updated " + fmt(P(SYNCED), true) : "";
 }
 
+const safe = u => { try { const x = new URL(u, location.href); return /^https?:$/.test(x.protocol) ? x.href : "#"; } catch(e) { return "#"; } };
+function toast(msg){ const t = $("toast"); t.textContent = msg; t.hidden = false; clearTimeout(toast._t); toast._t = setTimeout(() => t.hidden = true, 2600); }
+const gdate = (s, dateOnly, plusDays) => { const d = new Date(s); if (dateOnly) { const k = String(s).slice(0,10); const x = new Date(k + "T00:00:00Z"); if (plusDays) x.setUTCDate(x.getUTCDate() + plusDays); return x.toISOString().slice(0,10).replace(/-/g, ""); } return d.toISOString().replace(/[-:]/g, "").replace(/\.\d+/, ""); };
+function downloadIcs(e){
+  const f = s => String(s ?? "").replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\r?\n/g, "\\n");
+  const end = e.end && e.end !== e.start ? e.end : new Date(new Date(e.start).getTime() + 36e5).toISOString();
+  const ics = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Soul-noma Crew//EN","BEGIN:VEVENT",`UID:${e.id}@sebastopol-events`,`DTSTAMP:${gdate(new Date().toISOString())}`,
+    e.allDay ? `DTSTART;VALUE=DATE:${gdate(e.start, true)}` : `DTSTART:${gdate(e.start)}`, e.allDay ? `DTEND;VALUE=DATE:${gdate(e.start, true, 1)}` : `DTEND:${gdate(end)}`,
+    `SUMMARY:${f(e.title)}`, `LOCATION:${f([e.venue, e.address].filter(Boolean).join(", "))}`, e.url ? `URL:${e.url}` : "", `DESCRIPTION:${f(plain(e.description).slice(0, 1500))}`,
+    "END:VEVENT","END:VCALENDAR"].filter(Boolean).join("\r\n");
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([ics], {type:"text/calendar"}));
+  a.download = e.title.replace(/[^\w]+/g, "-").slice(0, 50) + ".ics"; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+const HINTS = [[/lu\.ma|luma\.com/i, true, "A Luma calendar."],[/calendar\.google\.com/i, true, "A Google Calendar."],[/meetup\.com/i, true, "A Meetup group."],
+  [/eventbrite\./i, true, "An Eventbrite organizer page."],[/mobilize\.us/i, true, "A Mobilize page."],[/tockify\.com/i, true, "A Tockify calendar."],
+  [/^webcals?:|\.ics(\?|$)|[?&]ical=1/i, true, "A calendar file (.ics)."],[/\/(feed|rss)(\/|\.xml)?$|\.rss$|\/atom/i, true, "An RSS feed."],
+  [/facebook\.com|instagram\.com|fb\.me/i, false, "Facebook and Instagram cannot be read. See \"No calendar yet\"."]];
+function issueUrl(template, title, fields){ const p = new URLSearchParams({template, title}); for (const [k, v] of Object.entries(fields)) if (v) p.set(k, v); return `https://github.com/${REPO}/issues/new?${p}`; }
+function setupAdd(){
+  const dlg = $("add-dialog");
+  const show = name => { dlg.querySelectorAll(".add-tabs [data-add]").forEach(b => b.setAttribute("aria-selected", String(b.dataset.add === name))); dlg.querySelectorAll(".add-pane").forEach(p => p.hidden = p.dataset.pane !== name); };
+  dlg.querySelector(".add-tabs").addEventListener("click", e => { const b = e.target.closest("[data-add]"); if (b) show(b.dataset.add); });
+  dlg.addEventListener("click", e => { if (e.target.closest("[data-close]") || e.target === dlg) dlg.close(); const g = e.target.closest("[data-goto]"); if (g) { e.preventDefault(); show(g.dataset.goto); } });
+  document.addEventListener("click", e => { const b = e.target.closest("[data-open-add]"); if (b) { show(b.dataset.openAdd); if (!dlg.open) dlg.showModal(); } });
+  const open = u => window.open(u, "_blank", "noopener");
+  const v = id => $(id).value.trim();
+  const need = ids => { const miss = ids.filter(id => !v(id)); ids.forEach(id => $(id).toggleAttribute("aria-invalid", miss.includes(id))); if (miss.length) { $(miss[0]).focus(); toast("Fill in the marked fields"); } return !miss.length; };
+  $("ev-date").min = iso(today);
+  $("ev-send").addEventListener("click", () => { if (!need(["ev-name","ev-date","ev-place"])) return;
+    open(issueUrl("add-event.yml", "Add event: " + v("ev-name"), {event:v("ev-name"), date:v("ev-date"), start:v("ev-start"), end:v("ev-end"), place:v("ev-place"), link:v("ev-link"), host:v("ev-host"), about:v("ev-about")})); });
+  $("feed-url").addEventListener("input", () => { const s = v("feed-url"); const h = s && HINTS.find(([re]) => re.test(s)); $("feed-detect").textContent = s ? (h ? h[2] : "A web page. The check looks on it for a calendar or event listings.") : ""; $("feed-detect").className = "detect" + (h && h[1] ? " ok" : ""); });
+  $("feed-send").addEventListener("click", () => { if (!need(["feed-url"])) return; open(issueUrl("add-source.yml", "Add calendar: " + (v("feed-name") || v("feed-url")), {url:v("feed-url"), name:v("feed-name")})); });
+  $("gr-send").addEventListener("click", () => { if (!need(["gr-name","gr-what"])) return;
+    open(issueUrl("add-group.yml", "Add group: " + v("gr-name"), {group:v("gr-name"), website:v("gr-url"), what:v("gr-what"), plugin:v("gr-plugin"), address:v("gr-address"), calendar:v("gr-feed"), instagram:v("gr-instagram")})); });
+}
+
 function start(scraped, dom, crew){
   (Array.isArray(dom) ? dom : []).forEach(d => DOM[d.id] = d);
   DATA = crew ? prep(crew.posts) : []; SYNCED = crew ? crew.synced : "";
   EVENTS = mergeEvents(scraped, DATA);
   const press = (g, v, attr) => g.querySelectorAll("button").forEach(b => b.setAttribute(attr || "aria-pressed", b.dataset.v === v));
-  press($("lens"), S.lens); press($("area"), S.area); press($("when"), String(S.when));
+  press($("lens"), S.lens); press($("area"), S.area);
   $("tabs").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; S.tab = b.dataset.v; S.f = ""; S.kind = ""; S.shown = {}; press($("tabs"), S.tab, "aria-selected"); render(); window.scrollTo(0, 0); });
   $("lens").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; S.lens = b.dataset.v; store.set("crew-lens", S.lens); S.f = ""; S.shown = {}; press($("lens"), S.lens); render(); });
   $("area").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; S.area = b.dataset.v; store.set("crew-area", S.area); S.shown = {}; press($("area"), S.area); render(); });
-  $("when").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; S.when = +b.dataset.v; S.shown = {}; press($("when"), b.dataset.v); render(); });
+  $("strip").addEventListener("click", e => { const b = e.target.closest("[data-day]"); const sec = b && document.getElementById("d-" + b.dataset.day); if (!sec) return;
+    window.scrollTo({top: sec.getBoundingClientRect().top + scrollY - document.querySelector(".bar").offsetHeight - 6}); });
+  const setBar = () => document.documentElement.style.setProperty("--barh", document.querySelector(".bar").offsetHeight + "px");
+  setBar(); addEventListener("resize", setBar);
+  let focusDay = "", ticking = false;
+  addEventListener("scroll", () => { if (ticking || S.tab !== "events") return; ticking = true; requestAnimationFrame(() => {
+    ticking = false; const line = document.querySelector(".bar").getBoundingClientRect().bottom + 12;
+    const sec = [...document.querySelectorAll("#main .group[data-day]")].find(s => s.getBoundingClientRect().bottom > line);
+    const day = sec ? sec.dataset.day : "";
+    if (day === focusDay) return; focusDay = day;
+    document.querySelectorAll(".ds").forEach(b => { const on = b.dataset.day === day; b.classList.toggle("focus", on); if (on) b.scrollIntoView({block:"nearest", inline:"nearest"}); });
+  }); }, {passive:true});
+  setupAdd();
   $("filters").addEventListener("click", e => { const b = e.target.closest(".f"); if (!b) return;
     if (b.dataset.crew) S.kind = S.kind === "crew" ? "" : "crew";
     else if (b.dataset.kind !== undefined) S.kind = S.kind === b.dataset.kind ? "" : b.dataset.kind;
@@ -502,6 +649,10 @@ function start(scraped, dom, crew){
   let t; $("q").addEventListener("input", e => { clearTimeout(t); t = setTimeout(() => { S.q = e.target.value.trim().toLowerCase(); S.shown = {}; render(); }, 150); });
   $("main").addEventListener("click", e => {
     const m = e.target.closest("[data-more]"); if (m) { S.shown[m.dataset.more] = (S.shown[m.dataset.more] || 40) + 40; render(); return; }
+    const evEl = e.target.closest("[data-ev]");
+    if (evEl && e.target.closest("[data-ics]")) { downloadIcs(VIEW[+evEl.dataset.ev]); return; }
+    if (evEl && e.target.closest("[data-share]")) { const ev = VIEW[+evEl.dataset.ev]; const url = new URL("../#view=events&event=" + ev.id, location.href).href;
+      (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(() => toast("Link copied"), () => toast(url)); return; }
     const a = e.target.closest("[data-act]"); if (!a) return;
     const el = a.closest("details"); const d = el.dataset.ev ? VIEW[+el.dataset.ev]._post : DATA.find(x => x.id == el.dataset.id);
     const txt = el.querySelector("textarea"), ok = el.querySelector(".ok");
