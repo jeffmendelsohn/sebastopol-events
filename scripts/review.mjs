@@ -54,6 +54,30 @@ const ago = (iso) => {
   return d <= 0 ? "today" : d === 1 ? "yesterday" : `${d} days ago`;
 };
 
+// Answers are read line by line from a queue, so typed and piped answers
+// behave the same. Closing the input (Ctrl-D) stops the review.
+function asker() {
+  const rl = createInterface({ input: process.stdin });
+  const lines = [];
+  const waiting = [];
+  let closed = false;
+  rl.on("line", (l) => (waiting.length ? waiting.shift()(l) : lines.push(l)));
+  rl.on("close", () => {
+    closed = true;
+    while (waiting.length) waiting.shift()(null);
+  });
+  const question = (q) => {
+    process.stdout.write(q);
+    const next = lines.length ? Promise.resolve(lines.shift()) : closed ? Promise.resolve(null) : new Promise((r) => waiting.push(r));
+    return next.then((a) => {
+      if (a == null) throw new Error("\nStopped. Nothing more was changed.");
+      if (!process.stdin.isTTY) process.stdout.write(a + "\n");
+      return a;
+    });
+  };
+  return { question, close: () => rl.close() };
+}
+
 async function choose(rl, question, options, fallback) {
   const keys = options.map((o) => o[0]);
   for (;;) {
@@ -113,7 +137,7 @@ async function main() {
   console.log(dim("\nGetting the latest copy from GitHub..."));
   run("git", ["pull", "--rebase", "--quiet", "origin", "main"]);
 
-  const rl = createInterface({ input: process.stdin, output: process.stdout });
+  const rl = asker();
   const approved = [];
   const declined = [];
   try {
