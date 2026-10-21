@@ -2,14 +2,16 @@
 // Checks a submitted calendar or event and proposes it.
 //
 // Runs in GitHub Actions on an issue opened from the site's "Add" forms
-// (.github/ISSUE_TEMPLATE/add-source.yml and add-event.yml), and by hand:
+// (.github/ISSUE_TEMPLATE/add-source.yml, add-event.yml and add-group.yml),
+// and by hand:
 //   node scripts/intake.mjs --url <link> [--name "Group name"]   (report only)
 //
 // For a calendar: detect what the link is (scripts/lib/detect.mjs), read it
-// once, count upcoming events in Sebastopol and nearby, and add it to
-// data/feeds.json. For one event: check the date and place the address,
-// and add it to data/manual-events.json. In Actions it then opens a pull
-// request and answers on the issue; a maintainer merges.
+// once, and count upcoming events in Sebastopol and nearby. For one event:
+// check the date and place the address. For a group: check the links and
+// place the address. In Actions it only answers on the issue. Nothing goes
+// into data/ until scripts/review.mjs, run by hand, approves it and calls
+// addFeed, addEvent or addGroup.
 //
 // The issue text is untrusted. It is read from the event payload in Node,
 // never interpolated into a shell command.
@@ -28,6 +30,7 @@ import { zonedToUtc, toPacificIso } from "./lib/time.mjs";
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const FEEDS = join(ROOT, "data/feeds.json");
 const MANUAL = join(ROOT, "data/manual-events.json");
+const ORGS = join(ROOT, "data/orgs.json");
 const geo = openGeocoder(join(ROOT, "data/geocache.json"));
 const HORIZON_DAYS = 60;
 
@@ -183,24 +186,105 @@ function addEvent(event) {
   return true;
 }
 
+// ---- A group ----------------------------------------------------------------
+const httpOrNull = (u) => (/^https?:\/\/\S+$/i.test(String(u ?? "").trim()) ? String(u).trim() : null);
+// The page copy rules (AGENTS.md) ban em dashes; a pasted one becomes a comma.
+const plain = (s) => String(s ?? "").replace(/\s*[\u2014\u2013]\s*/g, ", ").replace(/\s+/g, " ").trim();
+
+async function checkGroup(f) {
+  const name = plain(field(f, "group name", "name"));
+  const website = field(f, "website");
+  const what = plain(field(f, "what the group does, in one line", "what"));
+  const plugIn = plain(field(f, "how someone can take part", "plugin"));
+  const address = plain(field(f, "street address (if it has one)", "address"));
+  const calendar = field(f, "calendar or events page (if it has one)", "calendar");
+  const instagram = field(f, "instagram (if it has one)", "instagram");
+  const problems = [];
+  const notes = [];
+  if (!name) problems.push("The group needs a name.");
+  if (!what) problems.push("Say in one line what the group does.");
+  else if (what.length > 260) problems.push("The one line about the group is longer than 260 characters.");
+  if (website && !httpOrNull(website)) problems.push("The website needs to start with https://.");
+  if (instagram && !httpOrNull(instagram)) problems.push("The Instagram link needs to start with https://.");
+  if (existsSync(ORGS)) {
+    const orgs = JSON.parse(readFileSync(ORGS, "utf8"));
+    const twin = orgs.find((o) => o.name.toLowerCase() === name.toLowerCase() || (httpOrNull(website) && o.url === httpOrNull(website)));
+    if (twin) problems.push(`"${twin.name}" is already on the site.`);
+  }
+  let lat = null;
+  let lng = null;
+  let area = null;
+  let town = null;
+  if (address) {
+    const g = await geo.geocode(address, { budget: 5 });
+    if (g) {
+      lat = Math.round(g.lat * 1e5) / 1e5;
+      lng = Math.round(g.lng * 1e5) / 1e5;
+      area = areaFor(lat, lng);
+      town = area ? townFor(lat, lng) : null;
+    } else area = areaByText(address) || null;
+    if (!area) problems.push("That address is outside Sebastopol and the towns around it, or we could not find it on the map.");
+  } else {
+    area = "sebastopol";
+    notes.push("No street address, so it is listed under Sebastopol with no pin on the map.");
+  }
+  let feed = null;
+  if (calendar) {
+    try {
+      const r = await checkSource(calendar, name);
+      feed = { format: r.src.format, url: r.src.url };
+      notes.push(sourceReport(r));
+    } catch (err) {
+      notes.push(`The calendar link could not be read automatically (${err.message}). It is kept as the group's events page.`);
+    }
+  }
+  if (problems.length) return { ok: false, problems, notes };
+  const group = {
+    id: slug(name) || "group",
+    name,
+    url: httpOrNull(website) ?? httpOrNull(calendar) ?? httpOrNull(instagram),
+    what,
+    plugIn: plugIn || null,
+    kind: "informal",
+    domains: ["neighbors"],
+    area,
+    town: town ?? (area === "sebastopol" ? "Sebastopol" : null),
+    address: address || null,
+    eventsPage: httpOrNull(calendar),
+    instagram: httpOrNull(instagram),
+    feeds: feed ? [feed] : [],
+    evidence: null,
+    ...(lat != null ? { lat, lng } : {}),
+  };
+  if (!group.url) return { ok: false, problems: ["The group needs a website, a calendar link or an Instagram link."], notes };
+  return { ok: true, group, notes };
+}
+
+function addGroup(group, issue) {
+  const orgs = JSON.parse(readFileSync(ORGS, "utf8"));
+  if (orgs.some((o) => o.id === group.id || o.name.toLowerCase() === group.name.toLowerCase())) return false;
+  orgs.push({ ...group, ...(issue ? { evidence: `issue #${issue}` } : {}) });
+  orgs.sort((a, b) => a.name.localeCompare(b.name));
+  writeFileSync(ORGS, JSON.stringify(orgs, null, 2) + "\n");
+  return true;
+}
+
+function groupReport(r) {
+  const g = r.group;
+  const lines = g
+    ? [`**${g.name}**${g.area === "nearby" ? ` (nearby, ${g.town ?? "outside Sebastopol"})` : " (Sebastopol)"}`, "", `- ${g.what}`, ...(g.plugIn ? [`- Take part: ${g.plugIn}`] : []), ...(g.url ? [`- ${g.url}`] : [])]
+    : [];
+  if (r.notes?.length) lines.push("", ...r.notes);
+  return lines.join("\n");
+}
+
 // ---- GitHub plumbing --------------------------------------------------------
 const sh = (cmd, args, opts = {}) => execFileSync(cmd, args, { stdio: ["ignore", "pipe", "inherit"], encoding: "utf8", ...opts }).trim();
 function comment(issue, body) {
   sh("gh", ["issue", "comment", String(issue), "--body", body]);
 }
-function proposeChange(issue, files, title, body) {
-  const branch = `intake/issue-${issue}`;
-  sh("git", ["config", "user.name", "sebastopol-events-bot"]);
-  sh("git", ["config", "user.email", "41898282+github-actions[bot]@users.noreply.github.com"]);
-  sh("git", ["checkout", "-B", branch]);
-  sh("git", ["add", ...files]);
-  sh("git", ["commit", "-m", `${title}\n\nFrom issue #${issue}.`]);
-  sh("git", ["push", "-f", "origin", branch]);
-  const existing = sh("gh", ["pr", "list", "--head", branch, "--json", "url", "--jq", ".[0].url"]);
-  return existing || sh("gh", ["pr", "create", "--head", branch, "--title", title, "--body", `${body}\n\nCloses #${issue}.`]);
-}
 
-export { formFields, field, parseWhen, checkEvent, checkSource, sourceReport };
+export { formFields, field, parseWhen, checkEvent, checkSource, sourceReport, checkGroup, groupReport, addFeed, addEvent, addGroup };
 
 // ---- Main -------------------------------------------------------------------
 const main = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
@@ -229,25 +313,23 @@ if (!main) {
   const labels = (issue?.labels ?? []).map((l) => l.name);
   const f = formFields(issue?.body);
   try {
+    const later = "Thanks. It goes on the site once it is reviewed, usually within a few days.";
     if (labels.includes("add-source")) {
       const r = await checkSource(field(f, "calendar or feed link", "link", "url"), field(f, "group or calendar name", "name"));
-      const { added, why } = addFeed(r, issue.number);
-      if (!added) comment(issue.number, `${why}\n\n${sourceReport(r)}`);
-      else {
-        geo.save();
-        const pr = proposeChange(issue.number, ["data/feeds.json", "data/geocache.json"], `Add calendar: ${r.name ?? r.src.kind}`, sourceReport(r));
-        comment(issue.number, `Thanks. This calendar works, and it is ready to add.\n\n${sourceReport(r)}\n\nOnce a maintainer approves ${pr}, its events show up on the site the next morning, and it is read every morning after that.`);
-      }
+      const feeds = existsSync(FEEDS) ? JSON.parse(readFileSync(FEEDS, "utf8")) : [];
+      if (feeds.some((x) => x.url === r.src.url)) comment(issue.number, `This calendar is already on the list.\n\n${sourceReport(r)}`);
+      else comment(issue.number, `This calendar works.\n\n${sourceReport(r)}\n\n${later} After that it is read every morning.`);
     } else if (labels.includes("add-event")) {
       const r = await checkEvent(f, issue.number);
       if (!r.ok) comment(issue.number, `Almost. Please edit the request to fix this:\n\n${r.problems.map((p) => `- ${p}`).join("\n")}\n\nEditing the request runs this check again.`);
-      else if (!addEvent(r.event)) comment(issue.number, "This event is already on the list.");
       else {
-        geo.save();
         const summary = `**${r.event.title}**, ${r.event.start.slice(0, 16).replace("T", " ")}, ${r.event.address} (${r.area === "sebastopol" ? "Sebastopol" : `nearby, ${r.town}`})`;
-        const pr = proposeChange(issue.number, ["data/manual-events.json", "data/geocache.json"], `Add event: ${r.event.title}`, summary);
-        comment(issue.number, `Thanks. ${summary}\n\nIt shows up on the site once a maintainer approves ${pr}. For a group with more than one event, a calendar link saves you posting each one: see the "Add your calendar" option.`);
+        comment(issue.number, `${summary}\n\n${later} For a group with more than one event, a calendar link saves you posting each one: see the "Add a calendar" option.`);
       }
+    } else if (labels.includes("add-group")) {
+      const r = await checkGroup(f);
+      if (!r.ok) comment(issue.number, `Almost. Please edit the request to fix this:\n\n${r.problems.map((p) => `- ${p}`).join("\n")}${r.notes.length ? `\n\n${r.notes.join("\n\n")}` : ""}\n\nEditing the request runs this check again.`);
+      else comment(issue.number, `${groupReport(r)}\n\n${later}`);
     }
   } catch (err) {
     comment(issue.number, `We could not use that yet: ${err.message}\n\nEdit the request to try another link, or reply here and a person will help.`);

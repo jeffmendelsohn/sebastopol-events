@@ -1,0 +1,43 @@
+name: Add a group
+description: A nonprofit, farm, venue, club, church or neighborhood group in Sebastopol or a town nearby. It goes on the site once it is reviewed.
+title: "Add group: "
+labels: [add-group]
+body:
+  - type: input
+    id: group
+    attributes:
+      label: Group name
+    validations:
+      required: true
+  - type: input
+    id: website
+    attributes:
+      label: Website
+      placeholder: https://
+  - type: input
+    id: what
+    attributes:
+      label: What the group does, in one line
+      placeholder: Volunteer group that keeps up the trails in Ragle Ranch Park.
+    validations:
+      required: true
+  - type: input
+    id: plugin
+    attributes:
+      label: How someone can take part
+      placeholder: Volunteer on Saturdays, join the mailing list, come to a meeting
+  - type: input
+    id: address
+    attributes:
+      label: Street address (if it has one)
+      placeholder: 7400 Willow St, Sebastopol
+  - type: input
+    id: calendar
+    attributes:
+      label: Calendar or events page (if it has one)
+      placeholder: https://
+  - type: input
+    id: instagram
+    attributes:
+      label: Instagram (if it has one)
+      placeholder: https://instagram.com/...

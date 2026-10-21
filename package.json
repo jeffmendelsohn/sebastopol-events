@@ -16,6 +16,7 @@
     "all": "npm run geocode && npm run fetch && npm run tasks && npm run build",
     "tasks": "node scripts/needs-feed.mjs",
     "intake": "node scripts/intake.mjs",
+    "review": "node scripts/review.mjs",
     "test": "node --test tests/*.test.mjs"
   }
 }

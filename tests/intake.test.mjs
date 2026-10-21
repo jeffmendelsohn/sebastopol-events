@@ -2,7 +2,7 @@
 // script reads what those forms send. No network: Ives Park is a landmark.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { formFields, field, parseWhen, checkEvent } from "../scripts/intake.mjs";
+import { formFields, field, parseWhen, checkEvent, checkGroup } from "../scripts/intake.mjs";
 import { toPacificIso, pacificDayKey } from "../scripts/lib/time.mjs";
 
 // A date a month out, so the "already passed" and "more than a year away"
@@ -55,4 +55,31 @@ test("a past date and a missing place are both reported", async () => {
   const r = await checkEvent(formFields(bad), 1);
   assert.equal(r.ok, false);
   assert.equal(r.problems.length, 2);
+});
+
+// The body GitHub writes for .github/ISSUE_TEMPLATE/add-group.yml, with a
+// pasted dash in it.
+const DASH = String.fromCharCode(0x2014);
+const groupBody = [
+  "### Group name", "", "Ragle Trail Crew", "",
+  "### Website", "", "https://example.org/trails", "",
+  "### What the group does, in one line", "", "Volunteers who keep up the trails in Ragle Ranch Park " + DASH + " every month.", "",
+  "### How someone can take part", "", "Come to a Saturday work day.", "",
+  "### Street address (if it has one)", "", "_No response_", "",
+  "### Calendar or events page (if it has one)", "", "_No response_", "",
+  "### Instagram (if it has one)", "", "_No response_",
+].join("\n");
+
+test("a group with a name, a line and a website passes, and loses its em dash", async () => {
+  const r = await checkGroup(formFields(groupBody));
+  assert.equal(r.ok, true);
+  assert.equal(r.group.id, "ragle-trail-crew");
+  assert.equal(r.group.url, "https://example.org/trails");
+  assert.equal(r.group.area, "sebastopol");
+  assert.ok(!r.group.what.includes(DASH));
+});
+
+test("a group with no line about it is reported", async () => {
+  const r = await checkGroup(formFields(groupBody.replace(/Volunteers who[^\n]*/, "_No response_")));
+  assert.equal(r.ok, false);
 });
