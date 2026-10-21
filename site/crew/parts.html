@@ -1,0 +1,37 @@
+<!--part:head-->
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Halant:wght@400;500;600&family=Lato:ital,wght@0,300;0,400;0,700;1,300&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="crew/crew.css?v=__VERSION__">
+<!--part:gate-->
+<section class="gate" id="gate">
+  <div class="gate-in">
+    <svg class="mark" aria-hidden="true"><use href="#mk"/></svg>
+    <p class="eyebrow">Sebastopol · West County</p>
+    <h1>Soul-noma <em>Crew</em></h1>
+    <form id="gform" autocomplete="off">
+      <label for="pw" class="sr-only">Password</label>
+      <input id="pw" type="password" placeholder="Password" autocomplete="current-password" required>
+      <button type="submit">Enter</button>
+    </form>
+    <p class="gerr" id="gerr" role="alert"></p>
+  </div>
+</section>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="mk" viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="32" cy="32" rx="22" ry="28"/><path d="M14 40c6-3 9 2 15-1s8-7 14-6 7 4 9 3"/><path d="M12 48c7-2 10 2 17-1s9-6 15-4 6 3 8 2"/><path d="M16 31c5-3 8 1 13-2s8-6 13-5"/><path d="M38 22l3-7 3 7M36 22h10"/><path d="M41 22v4"/><path d="M24 25l2-5 2 5M23 25h6"/></g></symbol>
+  <symbol id="tree" viewBox="0 0 14 16"><path fill="currentColor" d="M7 0 2 6h3L1 11h4.5v5h3v-5H13L9 6h3z"/></symbol>
+</svg>
+<!--part:brand-->
+<a class="brand" href="crew/" aria-label="Soul-noma Crew, home"><svg class="mark" aria-hidden="true"><use href="#mk"/></svg>Soul-noma Crew</a>
+<!--part:tabs-->
+<span class="tab-sep" aria-hidden="true"></span>
+<button role="tab" class="nav-tab" id="tab-live" data-view="live" aria-controls="view-live">Asks &amp; Offers</button>
+<button role="tab" class="nav-tab" id="tab-dir" data-view="dir" aria-controls="view-dir">Evergreen</button>
+<button role="tab" class="nav-tab" id="tab-arch" data-view="arch" aria-controls="view-arch">Archive</button>
+<!--part:band-->
+<div class="stats" id="stats" aria-label="Right now"></div>
+<!--part:views-->
+<section id="view-live" role="tabpanel" aria-labelledby="tab-live" hidden></section>
+<section id="view-dir" role="tabpanel" aria-labelledby="tab-dir" hidden></section>
+<section id="view-arch" role="tabpanel" aria-labelledby="tab-arch" hidden></section>
+<!--part:end-->

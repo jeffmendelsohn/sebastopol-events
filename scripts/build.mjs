@@ -233,6 +233,37 @@ const robotsMeta = process.env.INDEX === "1" ? "" : `<meta name="robots" content
 let html = readFileSync(join(DIST, "index.html"), "utf8");
 html = html.replaceAll("__VERSION__", version).replaceAll("__BASE__", BASE).replace("<!--ROBOTS-->", robotsMeta).replace("<!--JSONLD-->", ldTag);
 writeFileSync(join(DIST, "index.html"), html);
+
+// --- crew/index.html ----------------------------------------------------
+// The password-locked Soul-noma Crew board is this same page with the crew
+// parts added, so every feature here shows up there too. <base href="../">
+// points its relative links (app.js, data/, the feeds) back at the site.
+// Each anchor below must exist once; a missing one stops the build.
+{
+  const parts = Object.fromEntries(
+    readFileSync(join(ROOT, "site/crew/parts.html"), "utf8")
+      .split(/<!--part:(\w+)-->\n?/)
+      .slice(1)
+      .reduce((acc, v, i, arr) => (i % 2 ? acc : [...acc, [v, arr[i + 1].trim()]]), [])
+  );
+  let crew = html.replaceAll("__VERSION__", version);
+  const swap = (find, replace) => {
+    if (!crew.includes(find)) throw new Error(`crew page: anchor not found in index.html: ${find}`);
+    crew = crew.replace(find, replace);
+  };
+  swap("<head>", `<head>\n  <base href="../">`);
+  crew = crew.replace(/<meta name="robots"[^>]*>/, "").replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/, "");
+  swap(/<title>[^<]*<\/title>/.exec(crew)[0], "<title>Soul-noma Crew</title>");
+  swap("</head>", `${parts.head.replaceAll("__VERSION__", version)}\n</head>`);
+  swap("<body>", `<body class="crew locked">\n${parts.gate}`);
+  swap(/<a class="brand"[^>]*>[\s\S]*?<\/a>/.exec(crew)[0], parts.brand);
+  swap(`aria-controls="view-groups">Groups</button>`, `aria-controls="view-groups">Groups</button>\n${parts.tabs}`);
+  swap("</header>", `</header>\n${parts.band}`);
+  swap(`<main class="wrap">`, `<main class="wrap">\n${parts.views}`);
+  swap(/<script type="module" src="app\.js[^"]*"><\/script>/.exec(crew)[0], `<script type="module" src="crew/crew.js?v=${version}"></script>`);
+  writeFileSync(join(DIST, "crew/index.html"), crew);
+  rmSync(join(DIST, "crew/parts.html"), { force: true });
+}
 writeFileSync(join(DIST, ".nojekyll"), "");
 writeFileSync(join(DIST, "robots.txt"), `User-agent: *\nAllow: /\n`);
 

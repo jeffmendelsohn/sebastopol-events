@@ -15,6 +15,11 @@ const REPO = "jeffmendelsohn/sebastopol-events";
 const CONTACT = "";
 
 const TZ = "America/Los_Angeles";
+// A page that builds on this app (the /crew/ board) sets window.SE before
+// loading it: extra views by id, mergeEvents(list) to add or mark events,
+// rowTag(e) and detailExtra(e) for extra HTML on an event, and ready(api).
+// The public page sets nothing, so none of this runs there.
+const EXT = window.SE ?? {};
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 
@@ -88,7 +93,7 @@ const SECTIONS = [
 const sectionOf = (o) => SECTIONS.find((s) => s.kinds.includes(o.kind)) ?? SECTIONS[0];
 
 // ---------- State (mirrored in the URL hash) ----------
-const VIEWS = ["events", "map", "groups"];
+const VIEWS = ["events", "map", "groups", ...Object.keys(EXT.views ?? {})];
 const AREAS = ["sebastopol", "nearby"];
 const DEFAULTS = { map: "week", area: "sebastopol" };
 const state = { view: "events", gq: "", kind: "", eq: "", cat: "", org: "", event: "", group: "", map: "week", area: "sebastopol" };
@@ -105,7 +110,7 @@ function writeHash() {
   if (state.view !== "events") p.set("view", state.view);
   for (const k of KEYS) if (state[k] && state[k] !== DEFAULTS[k]) p.set(k, state[k]);
   const h = p.toString();
-  history.replaceState(null, "", h ? "#" + h : location.pathname + location.search);
+  history.replaceState(null, "", location.pathname + location.search + (h ? "#" + h : ""));
 }
 const words = (q) => q.toLowerCase().split(/\s+/).filter(Boolean);
 const inArea = (x) => state.area === "nearby" || x.area === "sebastopol";
@@ -135,7 +140,7 @@ function renderHero() {
   const pool = areaPool();
   const core = pool.filter((x) => x.area === "sebastopol").length;
   $("#headline").textContent = v === "groups" ? "Groups" : v === "map" ? "Map" : "Events";
-  $("#open-add").textContent = ADD_LABEL[v];
+  $("#open-add").textContent = ADD_LABEL[v] ?? "+ Add";
   for (const b of $$(".area-switch button")) {
     const on = b.dataset.area === state.area;
     b.setAttribute("aria-pressed", String(on));
@@ -300,7 +305,7 @@ function eventRow(e) {
   return `<article class="item ev${isNear(e) ? " near" : ""}${open ? " open" : ""}" id="e-${esc(e.id)}" data-id="${esc(e.id)}">
     <button class="item-row" aria-expanded="${open}">
       <span class="t"><span class="sw" style="--c:${colorOf(e.domain)}"></span>${esc(e.allDay ? "All day" : timeLabel(e.start))}</span>
-      <span class="line"><span class="item-name">${esc(e.title)}</span>${e.org ? `<span class="host"> · ${esc(e.org)}</span>` : ""}${venueText ? `<span class="item-meta"> · ${venueText}</span>` : ""}${tag ? ` <span class="where-tag">${esc(tag)}</span>` : ""}</span>
+      <span class="line"><span class="item-name">${esc(e.title)}</span>${e.org ? `<span class="host"> · ${esc(e.org)}</span>` : ""}${venueText ? `<span class="item-meta"> · ${venueText}</span>` : ""}${tag ? ` <span class="where-tag">${esc(tag)}</span>` : ""}${EXT.rowTag ? EXT.rowTag(e) : ""}</span>
     </button>
     <div class="item-more"${open ? "" : " hidden"}>${open ? eventDetail(e) : ""}</div>
   </article>`;
@@ -367,7 +372,7 @@ function eventDetail(e) {
       ${Number.isFinite(e.lat) ? `<button class="go" data-map-event="${esc(e.id)}">On the map</button>` : ""}
       <button class="go" data-share="${esc(e.id)}">Copy link</button>
     </div>
-    <p class="item-meta">Listed by ${esc(e.sourceLabel ?? e.source)}</p>`;
+    <p class="item-meta">Listed by ${esc(e.sourceLabel ?? e.source)}</p>${EXT.detailExtra ? EXT.detailExtra(e) : ""}`;
 }
 
 function toggleEvent(id, { scroll = false } = {}) {
@@ -557,6 +562,7 @@ function setView(v) {
   renderHero();
   if (v === "groups") renderGroups();
   else if (v === "events") renderEvents();
+  else if (EXT.views?.[v]) EXT.views[v]();
   else renderMap();
 }
 function setArea(a) {
@@ -943,6 +949,7 @@ async function boot() {
   );
   DATA = ev ?? DATA;
   DATA.sources ??= [];
+  if (EXT.mergeEvents) DATA.events = EXT.mergeEvents(DATA.events ?? []);
   ORGS = (orgs ?? []).slice().sort((a, b) => a.name.localeCompare(b.name));
   DOMAINS = domains ?? [];
   GEO = geo;
@@ -971,6 +978,7 @@ async function boot() {
   setupAdd();
   renderSources();
   boot2();
+  EXT.ready?.({ state, setView, writeHash, toggleEvent });
 }
 
 boot();
