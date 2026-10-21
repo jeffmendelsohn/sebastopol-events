@@ -36,6 +36,8 @@ async function unlock(pw) {
   if (started) return true;
   started = true;
   document.body.classList.remove("locked");
+  $("stats").innerHTML = `<div class="stats-in"><span class="synced" style="margin:0">Loading the Crew board…</span></div>`;
+  $("thread").innerHTML = `<p class="empty">Loading…</p>`;
   const crew = await fetch("crew/crew.enc.json", { cache: "no-cache" })
     .then((r) => (r.ok ? r.json() : null))
     .then((b) => b && decrypt(pw, b))
