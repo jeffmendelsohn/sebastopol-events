@@ -8,10 +8,13 @@
 # scripts/fetch-events.mjs).
 #
 # It works in its own clone, so it never touches anyone's working copy.
-# Install: scripts/install-home-refresh.sh. Logs: /tmp/sebastopol-refresh.*.log
+# Install: scripts/install-home-refresh.sh. Log: ~/Library/Logs/sebastopol-refresh.log
 
 set -euo pipefail
-export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
+# launchd starts with a bare PATH. Find node and gh wherever they were
+# installed: Homebrew, ~/.local/bin, or the newest nvm version.
+NVM_NODE=(${HOME}/.nvm/versions/node/*/bin(nOn[1]))
+export PATH="${NVM_NODE[1]:-/nonexistent}:$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
 
 CLONE="${SEBASTOPOL_CLONE:-$HOME/.sebastopol-refresh/sebastopol-events}"
 REPO_URL="https://github.com/jeffmendelsohn/sebastopol-events.git"

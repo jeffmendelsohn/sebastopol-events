@@ -63,7 +63,7 @@ Every morning's build publishes the listings for anyone to use:
 
 A source that fails one morning keeps its last good read for 14 days, so one bad night does not empty the calendar.
 
-Eventbrite turns away GitHub's servers. `scripts/home-refresh.sh` runs the same fetch from a home connection and pushes the result; `scripts/install-home-refresh.sh` sets it up as a launch agent on a Mac.
+Eventbrite turns away GitHub's servers. `scripts/home-refresh.sh` runs the same fetch from a home connection and pushes the result; `scripts/install-home-refresh.sh` sets it up as a launch agent on a Mac. Jeff's Mac mini at home runs it, along with the crew board's daily job: the setup is in [docs/mac-mini.md](docs/mac-mini.md).
 
 ## Where things are
 

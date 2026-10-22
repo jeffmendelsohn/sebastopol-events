@@ -1,7 +1,8 @@
 #!/bin/zsh
 # Installs the morning home-connection refresh as a macOS launch agent.
 # Runs scripts/home-refresh.sh every day at 5:40 AM local time (a Mac that
-# was asleep runs it when it wakes). Remove it with:
+# was asleep runs it when it wakes). Log: ~/Library/Logs/sebastopol-refresh.log
+# Remove it with:
 #   launchctl bootout gui/$(id -u)/com.sebastopol-events.refresh
 #   rm ~/Library/LaunchAgents/com.sebastopol-events.refresh.plist
 
@@ -33,8 +34,8 @@ cat > "$PLIST" <<EOF
     <key>Minute</key><integer>40</integer>
   </dict>
   <key>RunAtLoad</key><false/>
-  <key>StandardOutPath</key><string>/tmp/sebastopol-refresh.out.log</string>
-  <key>StandardErrorPath</key><string>/tmp/sebastopol-refresh.err.log</string>
+  <key>StandardOutPath</key><string>$HOME/Library/Logs/sebastopol-refresh.log</string>
+  <key>StandardErrorPath</key><string>$HOME/Library/Logs/sebastopol-refresh.log</string>
 </dict>
 </plist>
 EOF
