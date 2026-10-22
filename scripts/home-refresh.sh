@@ -13,7 +13,7 @@
 set -euo pipefail
 # launchd starts with a bare PATH. Find node and gh wherever they were
 # installed: Homebrew, ~/.local/bin, or the newest nvm version.
-NVM_NODE=(${HOME}/.nvm/versions/node/*/bin(nOn[1]))
+NVM_NODE=(${HOME}/.nvm/versions/node/*/bin(NnOn[1]))
 export PATH="${NVM_NODE[1]:-/nonexistent}:$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
 
 CLONE="${SEBASTOPOL_CLONE:-$HOME/.sebastopol-refresh/sebastopol-events}"
