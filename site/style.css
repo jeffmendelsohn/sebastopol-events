@@ -130,6 +130,11 @@ body:has(#view-map:not([hidden])) .bar-in { max-width: 1240px; }
   display: flex; overflow-x: auto; border-bottom: 1px solid var(--ink); scrollbar-width: none;
 }
 .date-strip::-webkit-scrollbar { display: none; }
+/* Every list keeps its search and pills under the bar while it scrolls:
+   Groups here, and the crew page's boards (.cb-tools). The section heads
+   sit under them; app.js measures the toolbar into --pane-tools-h. */
+#view-groups > .tools, .cb-tools { position: sticky; top: var(--top); z-index: 6; background: var(--paper); padding-bottom: 4px; }
+#view-groups .sec-head, .cb-group .sec-head { top: calc(var(--top) + var(--pane-tools-h, 70px)); }
 /* The category pills and the date strip stay under the bar while the list scrolls. */
 .e-sticky { position: sticky; top: var(--top); z-index: 6; background: var(--paper); }
 .ds-day {

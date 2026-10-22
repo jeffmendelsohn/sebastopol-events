@@ -696,6 +696,7 @@ function setView(v) {
   else if (v === "events") renderEvents();
   else if (EXT.views?.[v]) EXT.views[v]();
   else renderMap();
+  requestAnimationFrame(() => trackHeights.panes?.());
 }
 function setArea(a) {
   if (!AREAS.includes(a) || a === state.area) return;
@@ -1124,6 +1125,21 @@ function trackHeights() {
     for (const el of [bar, pinned, mapTools]) if (el) ro.observe(el);
   }
   measure();
+  // Each list's pinned toolbar sets the offset for its own section heads.
+  // The crew page builds its boards later, so look again on every view.
+  const watched = new WeakSet();
+  const paneRO = window.ResizeObserver && new ResizeObserver((entries) => {
+    for (const { target } of entries) if (target.offsetHeight) target.parentElement.style.setProperty("--pane-tools-h", target.offsetHeight + "px");
+  });
+  trackHeights.panes = () => {
+    for (const el of $$("#view-groups > .tools, .cb-tools")) {
+      if (el.offsetHeight) el.parentElement.style.setProperty("--pane-tools-h", el.offsetHeight + "px");
+      if (paneRO && !watched.has(el)) {
+        watched.add(el);
+        paneRO.observe(el);
+      }
+    }
+  };
 }
 
 // ---------- Boot ----------
